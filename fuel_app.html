@@ -237,6 +237,37 @@ function calcTargets({ age, weight, height, sex, activity, goal, unit, steps, cy
   };
 }
 
+const USDA_KEY = "80xwrpV5zwefm539zwcA8jqrp6WBdgocqzJYW2fE";
+
+async function fetchUSDAFoods(queries) {
+  const results = [];
+  for (const query of queries.slice(0, 6)) {
+    try {
+      const resp = await fetch(
+        `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=3&api_key=${USDA_KEY}&dataType=Branded,Foundation,SR%20Legacy`
+      );
+      const data = await resp.json();
+      if (data.foods && data.foods.length > 0) {
+        const food = data.foods[0];
+        const nutrients = {};
+        (food.foodNutrients || []).forEach(n => {
+          if (n.nutrientName?.includes('Energy')) nutrients.calories = Math.round(n.value || 0);
+          if (n.nutrientName?.includes('Protein')) nutrients.protein = Math.round((n.value || 0) * 10) / 10;
+          if (n.nutrientName?.includes('Carbohydrate')) nutrients.carbs = Math.round((n.value || 0) * 10) / 10;
+          if (n.nutrientName?.includes('Total lipid')) nutrients.fat = Math.round((n.value || 0) * 10) / 10;
+        });
+        results.push({
+          name: food.description,
+          brand: food.brandOwner || food.brandName || '',
+          serving: food.servingSize ? `${food.servingSize}${food.servingSizeUnit || 'g'}` : '100g',
+          ...nutrients
+        });
+      }
+    } catch(e) {}
+  }
+  return results;
+}
+
 async function streamAI(prompt, onChunk, onDone, onError) {
   try {
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
@@ -296,7 +327,7 @@ function App() {
     if (r) { setResults(r); setAiOutput(""); setAiGenerated(false); setDayAiOutput(""); }
   };
 
-  function buildPrompt(results, form, detailed) {
+  function buildPrompt(results, form, detailed, usdaData) {
     const dietNote = form.diet !== "None" ? `Dietary preference: ${form.diet}.` : "";
     const likesNote = form.foodLikes.trim() ? `Foods the person enjoys: ${form.foodLikes}.` : "";
     const avoidNote = form.foodAvoid.trim() ? `Foods to avoid completely: ${form.foodAvoid}.` : "";
@@ -305,36 +336,57 @@ function App() {
                    form.ifWindow === "18_6" ? "Meal timing: 18:6 IF — structure all meals within a 6-hour eating window (e.g. 1pm–7pm)." :
                    form.ifWindow === "omad" ? "Meal timing: OMAD — provide ONE large meal hitting all daily targets." : "";
     const proteinMealNote = `Aim for ~${results.proteinPerMeal}g protein per meal to maximize muscle protein synthesis.`;
-    return `You are a registered dietitian creating a personalized meal plan.
+
+    let usdaNote = "";
+    if (usdaData && usdaData.length > 0) {
+      const foodLines = usdaData.map(f =>
+        "• " + f.name + (f.brand ? " (" + f.brand + ")" : "") + " — serving: " + f.serving + " | " + (f.calories || "?") + "kcal | " + (f.protein || "?") + "g protein | " + (f.carbs || "?") + "g carbs | " + (f.fat || "?") + "g fat"
+      ).join("\n");
+      usdaNote = "\n\nReal food data from USDA database — use these specific foods and their exact macros:\n" + foodLines + "\n\nIncorporate these real foods with exact serving sizes. Use precise quantities so macros add up correctly.";
+    }
+
+    return `You are a registered dietitian creating a personalized meal plan with exact nutritional accuracy.
 Target: ${results.calories} kcal/day | Protein: ${results.protein}g | Carbs: ${results.carbs}g | Fat: ${results.fat}g | Fiber: ${results.fiber}g
 Goal: ${goalLabel}
 ${dietNote} ${likesNote} ${avoidNote} ${ifNote}
 ${proteinMealNote}
+${usdaNote}
 Create ONE full day of eating ${form.ifWindow === "omad" ? "(1 large meal)" : form.ifWindow !== "none" ? "(3-4 meals within the eating window)" : "(5 meals: Breakfast, Morning Snack, Lunch, Afternoon Snack, Dinner)"} that hits these targets.
 ${likesNote ? "Build meals primarily around the foods the person enjoys. " : ""}${avoidNote ? "Strictly avoid listed foods. " : ""}
-${detailed ? "For each meal include: name, time, ingredients with portions, calories, and why it fits the goal." : "For each meal show: name, time, ingredients with portions, calories."}
-End with a Day Total. Plain text only, no markdown symbols.`;
+${detailed ? "For each meal include: food name with brand, exact serving size, calories, protein, carbs, fat. Then explain why it fits the goal." : "For each meal show: food name with brand, exact serving size, calories, protein, carbs, fat."}
+Be precise with quantities. Show running macro totals.
+End with a Day Total showing calories, protein, carbs, fat. Plain text only, no markdown symbols.`;
   }
 
-  const generateDayAiMeals = useCallback(() => {
+  const generateDayAiMeals = useCallback(async () => {
     if (!results) return;
     setDayAiLoading(true);
     setDayAiOutput("");
+    const queries = [
+      ...form.foodLikes.split(",").map(f => f.trim()).filter(Boolean).slice(0, 3),
+      ...(form.goal.includes("cut") ? ["chicken breast", "greek yogurt"] : ["oats", "ground beef"]),
+    ].filter(Boolean);
+    const usdaData = queries.length > 0 ? await fetchUSDAFoods(queries) : [];
     streamAI(
-      buildPrompt(results, form, false),
+      buildPrompt(results, form, false, usdaData),
       chunk => setDayAiOutput(prev => prev + chunk),
       () => setDayAiLoading(false),
       () => { setDayAiOutput("Error generating. Please try again."); setDayAiLoading(false); }
     );
   }, [results, form]);
 
-  const generateAiMeals = useCallback(() => {
+  const generateAiMeals = useCallback(async () => {
     if (!results) return;
     setAiLoading(true);
     setAiOutput("");
     setAiGenerated(false);
+    const queries = [
+      ...form.foodLikes.split(",").map(f => f.trim()).filter(Boolean).slice(0, 3),
+      ...(form.goal.includes("cut") ? ["chicken breast", "greek yogurt"] : ["oats", "ground beef"]),
+    ].filter(Boolean);
+    const usdaData = queries.length > 0 ? await fetchUSDAFoods(queries) : [];
     streamAI(
-      buildPrompt(results, form, true),
+      buildPrompt(results, form, true, usdaData),
       chunk => setAiOutput(prev => prev + chunk),
       () => { setAiLoading(false); setAiGenerated(true); },
       () => { setAiOutput("Error generating. Please try again."); setAiLoading(false); }
@@ -367,14 +419,7 @@ End with a Day Total. Plain text only, no markdown symbols.`;
               <div>{results.calories.toLocaleString()} kcal · {results.protein}P · {results.carbs}C · {results.fat}F</div>
             </div>
           )}
-          <a href="/Fuel/index.html"
-            style={{ fontSize:12, color:"#666", textDecoration:"none", letterSpacing:2, textTransform:"uppercase",
-              border:"1px solid #222", borderRadius:3, padding:"7px 14px", fontFamily:"'DM Mono',monospace",
-              transition:"all 0.15s" }}
-            onMouseOver={e => { e.currentTarget.style.color="#e8d5a3"; e.currentTarget.style.borderColor="#e8d5a3"; }}
-            onMouseOut={e => { e.currentTarget.style.color="#666"; e.currentTarget.style.borderColor="#222"; }}>
-            ← Home
-          </a>
+
         </div>
       </div>
 
@@ -507,6 +552,11 @@ End with a Day Total. Plain text only, no markdown symbols.`;
           <button className="calc-btn" onClick={calculate} disabled={!form.age || !form.weight || !form.height}>
             Calculate Targets
           </button>
+          <a href="/Fuel/index.html" style={{ display:"block", textAlign:"center", marginTop:14, fontSize:10, color:"#444", textDecoration:"none", letterSpacing:2, textTransform:"uppercase" }}
+            onMouseOver={e => e.currentTarget.style.color="#e8d5a3"}
+            onMouseOut={e => e.currentTarget.style.color="#444"}>
+            ← Back to home
+          </a>
         </aside>
 
         <main className="content">
