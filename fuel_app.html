@@ -360,12 +360,19 @@ End with a Day Total. Plain text only, no markdown symbols.`;
           <div className="logo">Fuel</div>
           <div className="logo-sub">Precision nutrition planning</div>
         </div>
-        {results && (
-          <div style={{ fontSize:11, color:"#444", textAlign:"right" }}>
-            <div style={{ color:"#666" }}>{GOALS[form.goal].label}</div>
-            <div>{results.calories.toLocaleString()} kcal · {results.protein}P · {results.carbs}C · {results.fat}F</div>
-          </div>
-        )}
+        <div style={{ display:"flex", alignItems:"center", gap:24 }}>
+          {results && (
+            <div style={{ fontSize:11, color:"#444", textAlign:"right" }}>
+              <div style={{ color:"#666" }}>{GOALS[form.goal].label}</div>
+              <div>{results.calories.toLocaleString()} kcal · {results.protein}P · {results.carbs}C · {results.fat}F</div>
+            </div>
+          )}
+          <a href="/Fuel/index.html" style={{ fontSize:11, color:"#555", textDecoration:"none", letterSpacing:1, display:"flex", alignItems:"center", gap:6, transition:"color 0.15s" }}
+            onMouseOver={e => e.target.style.color="#e8d5a3"}
+            onMouseOut={e => e.target.style.color="#555"}>
+            ← Home
+          </a>
+        </div>
       </div>
 
       <div className="main">
