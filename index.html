@@ -876,8 +876,8 @@ function runDemo() {
   <h2 class="section-title reveal reveal-delay-1">Be the first to know<br/>when we launch.</h2>
   <p class="section-body reveal reveal-delay-2">Join the waitlist and get free access to the full app on launch day. No spam, no nonsense — just one email when we're ready.</p>
 
-  <form class="email-form reveal reveal-delay-3" name="waitlist" method="POST" data-netlify="true" action="/Fuel/success.html">
-    <input type="hidden" name="form-name" value="waitlist" />
+  <form class="email-form reveal reveal-delay-3" method="POST" action="https://formspree.io/f/xrednbgk">
+    <input type="hidden" name="_next" value="https://shawnsteuerer.github.io/Fuel/success.html" />
     <input class="email-input" type="email" name="email" placeholder="your@email.com" required />
     <button class="email-btn" type="submit">Join waitlist</button>
   </form>
