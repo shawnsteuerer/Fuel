@@ -3,835 +3,875 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Fuel — Nutrition Planner</title>
+<title>Fuel — Precision Nutrition Planning</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #080808; }
-.app { min-height: 100vh; background: #080808; color: #f0ece3; font-family: 'DM Mono', monospace; font-size: 13px; }
-.header { border-bottom: 1px solid #1c1c1c; padding: 24px 48px; display: flex; align-items: center; justify-content: space-between; }
-.logo { font-family: 'DM Serif Display', serif; font-size: 32px; color: #e8d5a3; letter-spacing: -1px; }
-.logo-sub { font-size: 10px; color: #444; letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; }
-.main { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 81px); }
-.sidebar { border-right: 1px solid #141414; padding: 32px 28px; background: #060606; overflow-y: auto; max-height: calc(100vh - 81px); }
-.sidebar::-webkit-scrollbar { width: 4px; }
-.sidebar::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
-.content { padding: 36px 44px; overflow-y: auto; max-height: calc(100vh - 81px); }
-.content::-webkit-scrollbar { width: 4px; }
-.content::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
-.sec-label { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: #444; margin-bottom: 14px; }
-.field { margin-bottom: 16px; }
-.field label { display: block; font-size: 10px; color: #666; letter-spacing: 1px; margin-bottom: 6px; }
-.field input, .field select { width: 100%; background: #0e0e0e; border: 1px solid #1e1e1e; border-radius: 4px; color: #f0ece3; font-family: 'DM Mono', monospace; font-size: 12px; padding: 9px 12px; outline: none; transition: border-color 0.15s; -webkit-appearance: none; }
-.field input:focus, .field select:focus { border-color: #e8d5a3; }
-.field select option { background: #111; }
-.rb-group { display: grid; gap: 6px; }
-.rb-group.cols2 { grid-template-columns: 1fr 1fr; }
-.rb { background: #0e0e0e; border: 1px solid #1e1e1e; border-radius: 4px; padding: 8px 10px; text-align: center; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 11px; color: #666; transition: all 0.15s; user-select: none; }
-.rb:hover { border-color: #333; color: #aaa; }
-.rb.on { border-color: #e8d5a3; color: #e8d5a3; background: #16140c; }
-.diet-chip { background: #0e0e0e; border: 1px solid #1e1e1e; border-radius: 20px; padding: 5px 12px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 10px; color: #555; transition: all 0.15s; user-select: none; display: inline-block; }
-.diet-chip:hover { border-color: #333; color: #999; }
-.diet-chip.on { border-color: #8eb8a3; color: #8eb8a3; background: #0a120e; }
-.diet-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.divider { border: none; border-top: 1px solid #141414; margin: 22px 0; }
-.calc-btn { width: 100%; background: #e8d5a3; color: #080808; border: none; border-radius: 4px; padding: 13px; font-family: 'DM Serif Display', serif; font-size: 16px; cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.15s; }
-.calc-btn:hover { opacity: 0.88; }
-.calc-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.results-top { display: flex; align-items: flex-end; gap: 32px; margin-bottom: 8px; }
-.cal-number { font-family: 'DM Serif Display', serif; font-size: 52px; color: #e8d5a3; line-height: 1; }
-.cal-label { font-size: 10px; color: #444; letter-spacing: 2px; text-transform: uppercase; padding-bottom: 8px; }
-.macro-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 28px; gap: 2px; }
-.macro-bar-seg { border-radius: 2px; transition: width 0.5s ease; }
-.macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-.macro-card { background: #0d0d0d; border: 1px solid #191919; border-radius: 6px; padding: 16px; }
-.macro-card .mlabel { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #444; margin-bottom: 8px; }
-.macro-card .mval { font-family: 'DM Serif Display', serif; font-size: 28px; line-height: 1; margin-bottom: 2px; }
-.macro-card .msub { font-size: 10px; color: #555; }
-.mc-p .mval { color: #c9a96e; }
-.mc-c .mval { color: #8eb8a3; }
-.mc-f .mval { color: #a38eb8; }
-.mc-cal .mval { color: #e8d5a3; }
-.micro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 28px; }
-.micro-card { background: #0a0a0a; border: 1px solid #141414; border-radius: 5px; padding: 12px 14px; }
-.micro-card .mlabel { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #3a3a3a; margin-bottom: 6px; }
-.micro-card .mval { font-size: 15px; color: #888; }
-.micro-card .msub { font-size: 9px; color: #3a3a3a; margin-top: 2px; }
-.insight { background: #0c110c; border: 1px solid #162016; border-radius: 5px; padding: 14px 18px; margin-bottom: 28px; font-size: 11px; color: #6a8a6a; line-height: 1.7; }
-.insight strong { color: #9ab89a; }
-.view-tabs { display: flex; gap: 0; border-bottom: 1px solid #181818; margin-bottom: 28px; }
-.view-tab { padding: 10px 20px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 11px; color: #444; letter-spacing: 1px; border-bottom: 2px solid transparent; transition: all 0.15s; margin-bottom: -1px; }
-.view-tab:hover { color: #888; }
-.view-tab.on { color: #e8d5a3; border-bottom-color: #e8d5a3; }
-.day-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 20px; }
-.day-tab { padding: 6px 14px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 10px; color: #555; background: #0e0e0e; border: 1px solid #1a1a1a; border-radius: 3px; transition: all 0.15s; letter-spacing: 1px; }
-.day-tab:hover { color: #aaa; border-color: #333; }
-.day-tab.on { color: #e8d5a3; border-color: #e8d5a3; background: #14120a; }
-.meal-card { background: #0c0c0c; border: 1px solid #161616; border-radius: 7px; padding: 20px; margin-bottom: 12px; }
-.meal-card-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #161616; }
-.meal-card-title { font-family: 'DM Serif Display', serif; font-size: 16px; color: #f0ece3; }
-.meal-card-total { font-size: 10px; color: #555; }
-.meal-card-total span { color: #888; }
-.meal-row { display: grid; grid-template-columns: 88px 1fr 56px; align-items: start; padding: 9px 0; border-bottom: 1px solid #111; gap: 14px; }
-.meal-row:last-child { border-bottom: none; }
-.meal-time { font-size: 9px; letter-spacing: 2px; color: #363636; text-transform: uppercase; padding-top: 2px; }
-.meal-name { color: #ccc; font-size: 12px; line-height: 1.4; }
-.meal-cals { font-size: 11px; color: #666; text-align: right; padding-top: 2px; }
-.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-.week-day { background: #0c0c0c; border: 1px solid #161616; border-radius: 6px; padding: 14px 12px; }
-.week-day-name { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #444; margin-bottom: 10px; }
-.week-day-cal { font-family: 'DM Serif Display', serif; font-size: 22px; color: #e8d5a3; line-height: 1; margin-bottom: 4px; }
-.week-day-kcal { font-size: 9px; color: #444; }
-.week-day-meals { margin-top: 12px; display: flex; flex-direction: column; gap: 5px; }
-.week-meal-chip { font-size: 9px; color: #555; line-height: 1.3; padding: 4px 6px; background: #0a0a0a; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ai-btn { display: flex; align-items: center; gap: 10px; background: #0e0e0e; border: 1px solid #2a2a2a; border-radius: 6px; padding: 14px 18px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 12px; color: #aaa; transition: all 0.15s; width: 100%; margin-bottom: 16px; }
-.ai-btn:hover { border-color: #e8d5a3; color: #e8d5a3; }
-.ai-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.ai-result { background: #0c0c0c; border: 1px solid #1e1e1e; border-radius: 7px; padding: 20px; margin-top: 4px; }
-.ai-result-hdr { font-family: 'DM Serif Display', serif; font-size: 18px; color: #e8d5a3; margin-bottom: 16px; }
-.ai-streaming { color: #6a8a6a; font-size: 12px; line-height: 1.8; white-space: pre-wrap; }
-.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid #333; border-top-color: #e8d5a3; border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 420px; text-align: center; gap: 10px; }
-.empty-icon { font-size: 44px; opacity: 0.15; margin-bottom: 6px; }
-.empty-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: #2a2a2a; }
-.empty-sub { color: #2a2a2a; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; }
-.radio-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; cursor: pointer; }
-.radio-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; transition: all 0.15s; }
-.radio-label { font-size: 11px; }
-.radio-desc { font-size: 9px; color: #3a3a3a; }
-</style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useCallback, useRef, useEffect } = React;
+const { useState, useEffect, useRef } = React;
+const useCallback = React.useCallback;
 
-const ACTIVITY = {
-  sedentary:  { label: "Sedentary",         desc: "little/no exercise",  mult: 1.2   },
-  light:      { label: "Lightly active",    desc: "1–3 days/week",       mult: 1.375 },
-  moderate:   { label: "Moderately active", desc: "3–5 days/week",       mult: 1.55  },
-  active:     { label: "Very active",       desc: "6–7 days/week",       mult: 1.725 },
-  athlete:    { label: "Athlete",           desc: "2× daily training",   mult: 1.9   },
-};
-
-const GOALS = {
-  aggressive_cut: { label: "Aggressive Cut", cal: -700, proteinPerLb: 1.0,  fatRatio: 0.35, carbRatio: 0.65 },
-  cut:            { label: "Cut",            cal: -500, proteinPerLb: 1.0,  fatRatio: 0.35, carbRatio: 0.65 },
-  maintain:       { label: "Maintain",       cal:    0, proteinPerLb: 0.8,  fatRatio: 0.35, carbRatio: 0.65 },
-  lean_bulk:      { label: "Lean Bulk",      cal:  300, proteinPerLb: 0.85, fatRatio: 0.30, carbRatio: 0.70 },
-  bulk:           { label: "Bulk",           cal:  500, proteinPerLb: 0.8,  fatRatio: 0.28, carbRatio: 0.72 },
-};
-
-const DIETS = ["None","Vegetarian","Vegan","Pescatarian","Keto","Paleo","Gluten-Free","Dairy-Free","Halal","Kosher"];
-const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const DAY_VARIANTS = [
-  { theme: "High Protein" }, { theme: "Balanced" }, { theme: "Higher Carb" },
-  { theme: "High Protein" }, { theme: "Balanced" }, { theme: "Recovery" }, { theme: "Flex Day" },
-];
-
-const STATIC_PLANS = {
-  cut: [
-    { name: "Breakfast", desc: "Greek yogurt parfait w/ berries & granola",         baseCals: 280 },
-    { name: "Lunch",     desc: "Grilled chicken salad w/ lemon vinaigrette",         baseCals: 420 },
-    { name: "Snack",     desc: "Cottage cheese & sliced cucumber",                   baseCals: 130 },
-    { name: "Dinner",    desc: "Baked cod w/ roasted broccoli & bell peppers",       baseCals: 390 },
-    { name: "Snack",     desc: "Casein protein shake",                               baseCals: 120 },
-  ],
-  maintain: [
-    { name: "Breakfast", desc: "Avocado toast, 2 eggs, everything bagel seasoning",  baseCals: 450 },
-    { name: "Lunch",     desc: "Quinoa grain bowl w/ chickpeas & tahini",            baseCals: 560 },
-    { name: "Snack",     desc: "1oz trail mix",                                      baseCals: 170 },
-    { name: "Dinner",    desc: "6oz salmon, brown rice, asparagus, lemon butter",    baseCals: 620 },
-    { name: "Snack",     desc: "Greek yogurt with honey",                            baseCals: 140 },
-  ],
-  bulk: [
-    { name: "Breakfast", desc: "Oatmeal w/ protein powder, whole milk & banana",     baseCals: 780 },
-    { name: "Lunch",     desc: "Ground beef burrito bowl w/ rice, beans & guac",     baseCals: 950 },
-    { name: "Snack",     desc: "Mass gainer shake w/ oats & frozen banana",          baseCals: 580 },
-    { name: "Dinner",    desc: "8oz sirloin, baked potato, broccoli",                baseCals: 820 },
-    { name: "Snack",     desc: "PB & banana on whole wheat toast",                   baseCals: 450 },
-  ],
-};
-
-function getBase(goal) {
-  if (goal.includes("cut")) return STATIC_PLANS.cut;
-  if (goal.includes("bulk")) return STATIC_PLANS.bulk;
-  return STATIC_PLANS.maintain;
-}
-
-function buildDayMeals(targetCals, goal) {
-  const base = getBase(goal);
-  const rawTotal = base.reduce((s,m) => s + m.baseCals, 0);
-  const scale = targetCals / rawTotal;
-  return base.map(m => ({ ...m, cals: Math.round(m.baseCals * scale) }));
-}
-
-function buildWeek(results, goal) {
-  const base = getBase(goal);
-  const rawTotal = base.reduce((s,m) => s + m.baseCals, 0);
-  return DAYS.map((day, i) => {
-    const calAdjust = results.calories + (i === 5 || i === 6 ? 100 : 0);
-    const scale = calAdjust / rawTotal;
-    const meals = base.slice(0, 3).map(m => ({ ...m, cals: Math.round(m.baseCals * scale) }));
-    return { day, calories: calAdjust, theme: DAY_VARIANTS[i].theme, meals };
-  });
-}
-
-// Step calorie burn: ~0.045 cal/step adjusted for bodyweight
-function stepCalories(steps, weightLbs) {
-  if (!steps || steps <= 0) return 0;
-  const base = steps * 0.045;
-  const bwFactor = weightLbs / 155; // normalized to 155lb baseline
-  return Math.round(base * bwFactor);
-}
-
-// Menstrual cycle calorie adjustments by phase
-const CYCLE_PHASES = {
-  none:        { label: "N/A",           calAdj: 0,    note: "" },
-  follicular:  { label: "Follicular",    calAdj: 0,    note: "Day 1–13. Normal calorie needs. Good time for higher intensity training." },
-  ovulation:   { label: "Ovulation",     calAdj: 100,  note: "Day 14. Slight energy increase. Peak strength and performance window." },
-  luteal:      { label: "Luteal",        calAdj: 150,  note: "Day 15–28. Metabolic rate rises ~150 kcal. Cravings are normal — plan for them." },
-  menstrual:   { label: "Menstrual",     calAdj: -50,  note: "Day 1–5. Slightly lower needs. Prioritize iron-rich foods and hydration." },
-};
-
-function calcTargets({ age, weight, height, sex, activity, goal, unit, steps, cyclePhase }) {
-  let w = parseFloat(weight), h = parseFloat(height), a = parseInt(age);
-  if (!w || !h || !a) return null;
-  if (unit === "imperial") { w = w * 0.453592; h = h * 2.54; }
-  const bmr = sex === "male" ? 10*w + 6.25*h - 5*a + 5 : 10*w + 6.25*h - 5*a - 161;
-  const baseTdee = Math.round(bmr * ACTIVITY[activity].mult);
-  const wLbs = unit === "imperial" ? parseFloat(weight) : w * 2.20462;
-
-  // Add step-based calorie burn on top of activity multiplier
-  const stepCals = stepCalories(parseInt(steps) || 0, wLbs);
-
-  // Cycle phase adjustment
-  const cycleAdj = sex === "female" && cyclePhase ? (CYCLE_PHASES[cyclePhase]?.calAdj || 0) : 0;
-
-  const tdee = baseTdee + stepCals;
-  const adj = GOALS[goal];
-  const calories = Math.round(tdee + adj.cal + cycleAdj);
-
-  // Protein: strictly bodyweight-based (0.8g/lb maintain/bulk, 1g/lb cut)
-  const protein = Math.round(wLbs * adj.proteinPerLb);
-  const proteinCals = protein * 4;
-  const remainingCals = calories - proteinCals;
-  const fat   = Math.round((remainingCals * adj.fatRatio) / 9);
-  const carbs = Math.round((remainingCals * adj.carbRatio) / 4);
-  const fiber = Math.round(calories / 1000 * 14);
-
-  // Protein distribution across meals (30-40g per meal maximizes MPS)
-  const meals = 5;
-  const proteinPerMeal = Math.round(protein / meals);
-
-  const actualAdj = { ...adj, protein: (protein*4)/calories, carbs: (carbs*4)/calories, fat: (fat*9)/calories };
-  return {
-    calories, protein, carbs, fat, fiber, tdee, baseTdee, stepCals, cycleAdj,
-    adj: actualAdj, water: Math.round(w * 0.033 * 10) / 10,
-    proteinPerMeal, cycleNote: CYCLE_PHASES[cyclePhase]?.note || ""
-  };
-}
 
 const USDA_KEY = "80xwrpV5zwefm539zwcA8jqrp6WBdgocqzJYW2fE";
 
-async function fetchUSDAFoods(queries) {
-  const results = [];
-  for (const query of queries.slice(0, 6)) {
-    try {
-      const resp = await fetch(
-        `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=3&api_key=${USDA_KEY}&dataType=Branded,Foundation,SR%20Legacy`
-      );
-      const data = await resp.json();
-      if (data.foods && data.foods.length > 0) {
-        const food = data.foods[0];
-        const nutrients = {};
-        (food.foodNutrients || []).forEach(n => {
-          if (n.nutrientName?.includes('Energy')) nutrients.calories = Math.round(n.value || 0);
-          if (n.nutrientName?.includes('Protein')) nutrients.protein = Math.round((n.value || 0) * 10) / 10;
-          if (n.nutrientName?.includes('Carbohydrate')) nutrients.carbs = Math.round((n.value || 0) * 10) / 10;
-          if (n.nutrientName?.includes('Total lipid')) nutrients.fat = Math.round((n.value || 0) * 10) / 10;
-        });
-        results.push({
-          name: food.description,
-          brand: food.brandOwner || food.brandName || '',
-          serving: food.servingSize ? `${food.servingSize}${food.servingSizeUnit || 'g'}` : '100g',
-          ...nutrients
-        });
-      }
-    } catch(e) {}
-  }
-  return results;
+// ─── USDA Search ───────────────────────────────────────────────────────────────
+async function searchUSDA(query) {
+  try {
+    const r = await fetch(
+      `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=5&api_key=${USDA_KEY}&dataType=Branded,Foundation,SR%20Legacy`
+    );
+    const d = await r.json();
+    return (d.foods || []).slice(0, 3).map(f => {
+      const n = {};
+      (f.foodNutrients || []).forEach(x => {
+        if (x.nutrientName?.includes("Energy")) n.kcal = Math.round(x.value || 0);
+        if (x.nutrientName?.includes("Protein")) n.protein = +(x.value || 0).toFixed(1);
+        if (x.nutrientName?.includes("Carbohydrate")) n.carbs = +(x.value || 0).toFixed(1);
+        if (x.nutrientName?.includes("Total lipid")) n.fat = +(x.value || 0).toFixed(1);
+      });
+      return {
+        id: f.fdcId,
+        name: f.description,
+        brand: f.brandOwner || f.brandName || null,
+        serving: f.servingSize ? `${f.servingSize}${f.servingSizeUnit || "g"}` : "100g",
+        ...n,
+      };
+    });
+  } catch { return []; }
 }
 
-async function streamAI(prompt, onChunk, onDone, onError) {
-  try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        stream: true,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          try {
-            const data = JSON.parse(line.slice(6));
-            if (data.type === "content_block_delta" && data.delta?.text) onChunk(data.delta.text);
-          } catch {}
+// Quality keywords for USDA filtering
+const QUALITY_KEYWORDS = {
+  organic:       "organic",
+  grassfed:      "grass fed grass-fed",
+  pasture:       "pasture raised pasture-raised",
+  wildcaught:    "wild caught wild-caught",
+  nongmo:        "non-gmo non gmo",
+};
+
+const GROCERY_STORES = {
+  none:       { label: "No preference",    brand: null },
+  wholefoods: { label: "Whole Foods",      brand: "365 whole foods market" },
+  traderjoes: { label: "Trader Joe's",     brand: "trader joes" },
+  costco:     { label: "Costco",           brand: "kirkland signature" },
+  walmart:    { label: "Walmart",          brand: "great value" },
+  target:     { label: "Target",           brand: "good & gather" },
+  kroger:     { label: "Kroger",           brand: "kroger" },
+  publix:     { label: "Publix",           brand: "publix" },
+  safeway:    { label: "Safeway",          brand: "safeway" },
+  sprouts:    { label: "Sprouts",          brand: "sprouts" },
+  aldi:       { label: "ALDI",             brand: "aldi" },
+};
+
+function buildSearchQuery(food, qualities, store) {
+  const tags = Object.entries(qualities)
+    .filter(([, v]) => v)
+    .map(([k]) => QUALITY_KEYWORDS[k].split(" ")[0])
+    .join(" ");
+  const storeBrand = store && GROCERY_STORES[store]?.brand;
+  const parts = [storeBrand, tags, food].filter(Boolean);
+  return parts.join(" ");
+}
+
+// ─── Calc ──────────────────────────────────────────────────────────────────────
+const ACTIVITY = {
+  sedentary: { label: "Sedentary",          desc: "Desk job, no exercise", mult: 1.2   },
+  light:     { label: "Lightly active",     desc: "1–3 days/week",         mult: 1.375 },
+  moderate:  { label: "Moderately active",  desc: "3–5 days/week",         mult: 1.55  },
+  active:    { label: "Very active",        desc: "6–7 days/week",         mult: 1.725 },
+  athlete:   { label: "Athlete",            desc: "2× daily training",     mult: 1.9   },
+};
+
+const GOALS = {
+  aggressive_cut: { label: "Aggressive Cut", cal: -700, proteinPerLb: 1.0, fatR: 0.35, carbR: 0.65 },
+  cut:            { label: "Cut",            cal: -500, proteinPerLb: 1.0, fatR: 0.35, carbR: 0.65 },
+  maintain:       { label: "Maintain",       cal:    0, proteinPerLb: 0.8, fatR: 0.35, carbR: 0.65 },
+  lean_bulk:      { label: "Lean Bulk",      cal:  300, proteinPerLb: 0.85,fatR: 0.30, carbR: 0.70 },
+  bulk:           { label: "Bulk",           cal:  500, proteinPerLb: 0.8, fatR: 0.28, carbR: 0.72 },
+};
+
+function calcTargets(f) {
+  let w = +f.weight, h = +f.height, a = +f.age;
+  if (!w || !h || !a) return null;
+  if (f.unit === "imperial") { w *= 0.453592; h *= 2.54; }
+  const bmr = f.sex === "male" ? 10*w + 6.25*h - 5*a + 5 : 10*w + 6.25*h - 5*a - 161;
+  const tdee = Math.round(bmr * ACTIVITY[f.activity].mult);
+  const g = GOALS[f.goal];
+  const cal = Math.round(tdee + g.cal);
+  const wLbs = f.unit === "imperial" ? +f.weight : w * 2.20462;
+  const protein = Math.round(wLbs * g.proteinPerLb);
+  const rem = cal - protein * 4;
+  const fat = Math.round(rem * g.fatR / 9);
+  const carbs = Math.round(rem * g.carbR / 4);
+  const fiber = Math.round(cal / 1000 * 14);
+  return { cal, protein, carbs, fat, fiber, tdee,
+    pPct: Math.round(protein*4/cal*100),
+    cPct: Math.round(carbs*4/cal*100),
+    fPct: Math.round(fat*9/cal*100),
+    water: Math.round(w * 0.033 * 10) / 10,
+    proteinPerMeal: Math.round(protein / 5),
+  };
+}
+
+// ─── Meal Templates ────────────────────────────────────────────────────────────
+// Each slot has options with a "searchQuery" used to fetch real USDA data
+const MEAL_TEMPLATES = {
+  cut: [
+    { slot: "Breakfast", pct: 0.20, options: [
+      { name: "Greek Yogurt Parfait",   search: "nonfat greek yogurt",       desc: "Non-fat Greek yogurt, mixed berries, 1 tbsp granola" },
+      { name: "Egg White Omelette",     search: "egg whites",                desc: "4 egg whites, spinach, mushrooms, feta" },
+      { name: "Protein Oats",           search: "rolled oats",               desc: "½ cup oats, 1 scoop whey, almond milk, berries" },
+    ]},
+    { slot: "Morning Snack", pct: 0.08, options: [
+      { name: "Cottage Cheese",         search: "low fat cottage cheese",     desc: "½ cup cottage cheese, cucumber, black pepper" },
+      { name: "Hard Boiled Eggs",       search: "eggs",                       desc: "2 hard boiled eggs, hot sauce" },
+      { name: "Tuna Rice Cakes",        search: "light tuna canned",          desc: "½ can tuna, 2 rice cakes, mustard" },
+    ]},
+    { slot: "Lunch", pct: 0.28, options: [
+      { name: "Grilled Chicken Salad",  search: "chicken breast",             desc: "6oz chicken breast, arugula, tomatoes, lemon vinaigrette" },
+      { name: "Turkey Lettuce Wraps",   search: "ground turkey",              desc: "5oz ground turkey, romaine, salsa, ¼ avocado" },
+      { name: "Tuna Rice Bowl",         search: "light tuna canned",          desc: "1 can tuna, ½ cup rice, edamame, sriracha" },
+    ]},
+    { slot: "Afternoon Snack", pct: 0.09, options: [
+      { name: "Whey Protein Shake",     search: "whey protein powder",        desc: "1 scoop whey, water, ice" },
+      { name: "Edamame",                search: "edamame",                    desc: "1 cup shelled edamame, sea salt" },
+      { name: "String Cheese & Apple",  search: "low fat string cheese",      desc: "1 string cheese, 1 medium apple" },
+    ]},
+    { slot: "Dinner", pct: 0.35, options: [
+      { name: "Baked Cod & Veg",        search: "cod fish fillet",            desc: "7oz cod, broccoli, bell peppers, lemon herbs" },
+      { name: "Chicken & Sweet Potato", search: "chicken breast",             desc: "6oz chicken breast, sweet potato, green beans" },
+      { name: "Shrimp Stir-Fry",        search: "shrimp",                     desc: "6oz shrimp, mixed veg, cauliflower rice, soy ginger" },
+    ]},
+  ],
+  maintain: [
+    { slot: "Breakfast", pct: 0.22, options: [
+      { name: "Avocado Toast & Eggs",   search: "eggs",                       desc: "2 eggs, whole grain toast, ½ avocado, everything seasoning" },
+      { name: "Smoothie Bowl",          search: "acai",                       desc: "Açaí, banana, almond milk, granola, berries, chia" },
+      { name: "Veggie Scramble",        search: "eggs",                       desc: "3 eggs, spinach, tomatoes, feta, whole grain toast" },
+    ]},
+    { slot: "Morning Snack", pct: 0.09, options: [
+      { name: "Trail Mix",              search: "mixed nuts",                 desc: "1oz mixed nuts, dried cranberries" },
+      { name: "Banana & PB",            search: "natural peanut butter",      desc: "1 banana, 1 tbsp natural peanut butter" },
+      { name: "Greek Yogurt & Honey",   search: "greek yogurt",               desc: "¾ cup 2% Greek yogurt, 1 tsp honey" },
+    ]},
+    { slot: "Lunch", pct: 0.28, options: [
+      { name: "Quinoa Grain Bowl",      search: "quinoa",                     desc: "½ cup quinoa, chickpeas, cucumber, feta, tahini" },
+      { name: "Chicken Pita",           search: "chicken breast",             desc: "Grilled chicken, whole wheat pita, hummus, tzatziki" },
+      { name: "Salmon Salad",           search: "salmon",                     desc: "5oz salmon, mixed greens, avocado, lemon dressing" },
+    ]},
+    { slot: "Afternoon Snack", pct: 0.09, options: [
+      { name: "Hummus & Veggies",       search: "hummus",                     desc: "3 tbsp hummus, carrots, celery, bell pepper" },
+      { name: "Almonds & Apple",        search: "raw almonds",                desc: "1oz almonds, 1 apple" },
+      { name: "Cheese & Crackers",      search: "cheddar cheese",             desc: "1oz cheddar, 5 whole grain crackers" },
+    ]},
+    { slot: "Dinner", pct: 0.32, options: [
+      { name: "Salmon & Brown Rice",    search: "salmon",                     desc: "6oz salmon, ⅔ cup brown rice, asparagus, lemon butter" },
+      { name: "Chicken Pasta",          search: "chicken breast",             desc: "5oz chicken, 1½ cups whole wheat pasta, marinara" },
+      { name: "Lamb & Couscous",        search: "lamb",                       desc: "4oz lamb, couscous, roasted eggplant, mint" },
+    ]},
+  ],
+  bulk: [
+    { slot: "Breakfast", pct: 0.22, options: [
+      { name: "Power Oatmeal",          search: "rolled oats",                desc: "1 cup oats, 2 scoops protein, whole milk, banana, PB" },
+      { name: "Egg & Rice Bowl",        search: "eggs",                       desc: "3 eggs + 2 whites, 1 cup white rice, salsa, avocado" },
+      { name: "Protein Pancakes",       search: "protein pancake mix",        desc: "3 protein pancakes, 3 eggs, maple syrup, berries" },
+    ]},
+    { slot: "Morning Snack", pct: 0.10, options: [
+      { name: "Mass Shake",             search: "whey protein powder",        desc: "2 scoops protein, whole milk, banana, almond butter" },
+      { name: "Cottage Cheese & Fruit", search: "cottage cheese",             desc: "1 cup cottage cheese, pineapple, granola" },
+      { name: "PB Banana Toast",        search: "natural peanut butter",      desc: "2 slices whole wheat, 2 tbsp PB, 1 banana, honey" },
+    ]},
+    { slot: "Lunch", pct: 0.26, options: [
+      { name: "Beef Burrito Bowl",      search: "ground beef",                desc: "6oz ground beef, rice, black beans, cheese, guac" },
+      { name: "Chicken Pasta",          search: "chicken breast",             desc: "8oz chicken, 2 cups whole wheat pasta, marinara, parmesan" },
+      { name: "Steak Wrap",             search: "sirloin steak",              desc: "6oz sirloin, flour tortillas, peppers, cheese" },
+    ]},
+    { slot: "Afternoon Snack", pct: 0.10, options: [
+      { name: "Greek Yogurt & Granola", search: "greek yogurt",               desc: "1 cup full-fat Greek yogurt, granola, honey, berries" },
+      { name: "Protein Bar & Banana",   search: "protein bar",                desc: "1 protein bar (20g+), 1 large banana" },
+      { name: "Tuna & Rice Cakes",      search: "light tuna canned",          desc: "1 can tuna, 4 rice cakes, light mayo" },
+    ]},
+    { slot: "Dinner", pct: 0.32, options: [
+      { name: "Steak & Baked Potato",   search: "sirloin steak",              desc: "8oz sirloin, large baked potato, sour cream, broccoli" },
+      { name: "Salmon Bowl",            search: "salmon",                     desc: "7oz salmon, jasmine rice, edamame, avocado, soy" },
+      { name: "Beef & Pasta",           search: "ground beef",                desc: "6oz ground beef, pasta, tomato sauce, garlic bread" },
+    ]},
+  ],
+};
+
+function getTemplates(goal) {
+  if (goal.includes("cut")) return MEAL_TEMPLATES.cut;
+  if (goal.includes("bulk")) return MEAL_TEMPLATES.bulk;
+  return MEAL_TEMPLATES.maintain;
+}
+
+// ─── Micro Data (% DV per meal) ────────────────────────────────────────────────
+const MICRO_DATA = {
+  "Greek Yogurt Parfait":    { vitD:8,  Ca:20, Fe:4,  vitC:15, K:8,  Mg:8,  Zn:6,  B12:18, folate:5,  omega3:2  },
+  "Egg White Omelette":      { vitD:4,  Ca:10, Fe:6,  vitC:18, K:10, Mg:6,  Zn:4,  B12:12, folate:20, omega3:1  },
+  "Protein Oats":            { vitD:6,  Ca:15, Fe:15, vitC:5,  K:8,  Mg:18, Zn:10, B12:8,  folate:8,  omega3:2  },
+  "Cottage Cheese":          { vitD:2,  Ca:8,  Fe:2,  vitC:6,  K:5,  Mg:4,  Zn:4,  B12:10, folate:4,  omega3:1  },
+  "Hard Boiled Eggs":        { vitD:6,  Ca:4,  Fe:8,  vitC:0,  K:4,  Mg:4,  Zn:8,  B12:20, folate:10, omega3:1  },
+  "Tuna Rice Cakes":         { vitD:10, Ca:2,  Fe:4,  vitC:2,  K:5,  Mg:6,  Zn:5,  B12:20, folate:3,  omega3:8  },
+  "Grilled Chicken Salad":   { vitD:2,  Ca:6,  Fe:10, vitC:45, K:18, Mg:10, Zn:12, B12:8,  folate:28, omega3:2  },
+  "Turkey Lettuce Wraps":    { vitD:2,  Ca:4,  Fe:12, vitC:20, K:15, Mg:8,  Zn:14, B12:10, folate:22, omega3:3  },
+  "Tuna Rice Bowl":          { vitD:15, Ca:5,  Fe:8,  vitC:10, K:12, Mg:12, Zn:8,  B12:35, folate:15, omega3:18 },
+  "Whey Protein Shake":      { vitD:4,  Ca:12, Fe:4,  vitC:0,  K:6,  Mg:8,  Zn:10, B12:15, folate:5,  omega3:0  },
+  "Edamame":                 { vitD:0,  Ca:8,  Fe:15, vitC:12, K:12, Mg:16, Zn:10, B12:0,  folate:45, omega3:4  },
+  "String Cheese & Apple":   { vitD:2,  Ca:15, Fe:1,  vitC:8,  K:6,  Mg:2,  Zn:3,  B12:5,  folate:2,  omega3:0  },
+  "Baked Cod & Veg":         { vitD:20, Ca:6,  Fe:6,  vitC:85, K:25, Mg:14, Zn:8,  B12:40, folate:25, omega3:12 },
+  "Chicken & Sweet Potato":  { vitD:2,  Ca:4,  Fe:8,  vitC:35, K:22, Mg:12, Zn:15, B12:10, folate:12, omega3:2  },
+  "Shrimp Stir-Fry":         { vitD:8,  Ca:8,  Fe:14, vitC:60, K:18, Mg:18, Zn:12, B12:25, folate:20, omega3:5  },
+  "Avocado Toast & Eggs":    { vitD:6,  Ca:8,  Fe:15, vitC:10, K:18, Mg:10, Zn:8,  B12:15, folate:30, omega3:4  },
+  "Smoothie Bowl":           { vitD:4,  Ca:15, Fe:10, vitC:35, K:22, Mg:12, Zn:4,  B12:5,  folate:15, omega3:3  },
+  "Veggie Scramble":         { vitD:6,  Ca:12, Fe:14, vitC:20, K:14, Mg:8,  Zn:8,  B12:18, folate:35, omega3:2  },
+  "Trail Mix":               { vitD:0,  Ca:4,  Fe:8,  vitC:2,  K:6,  Mg:12, Zn:6,  B12:0,  folate:4,  omega3:2  },
+  "Banana & PB":             { vitD:0,  Ca:2,  Fe:4,  vitC:12, K:18, Mg:10, Zn:4,  B12:0,  folate:8,  omega3:1  },
+  "Greek Yogurt & Honey":    { vitD:4,  Ca:18, Fe:2,  vitC:2,  K:8,  Mg:6,  Zn:8,  B12:20, folate:4,  omega3:1  },
+  "Quinoa Grain Bowl":       { vitD:0,  Ca:8,  Fe:22, vitC:15, K:14, Mg:22, Zn:12, B12:0,  folate:30, omega3:3  },
+  "Chicken Pita":            { vitD:2,  Ca:10, Fe:15, vitC:20, K:18, Mg:12, Zn:16, B12:10, folate:20, omega3:2  },
+  "Salmon Salad":            { vitD:35, Ca:8,  Fe:10, vitC:30, K:22, Mg:14, Zn:10, B12:45, folate:25, omega3:55 },
+  "Hummus & Veggies":        { vitD:0,  Ca:6,  Fe:10, vitC:45, K:12, Mg:10, Zn:6,  B12:0,  folate:18, omega3:2  },
+  "Almonds & Apple":         { vitD:0,  Ca:8,  Fe:6,  vitC:12, K:10, Mg:16, Zn:6,  B12:0,  folate:6,  omega3:1  },
+  "Cheese & Crackers":       { vitD:2,  Ca:20, Fe:4,  vitC:2,  K:4,  Mg:4,  Zn:8,  B12:8,  folate:4,  omega3:0  },
+  "Salmon & Brown Rice":     { vitD:40, Ca:6,  Fe:8,  vitC:12, K:25, Mg:20, Zn:12, B12:50, folate:15, omega3:60 },
+  "Chicken Pasta":           { vitD:2,  Ca:8,  Fe:18, vitC:8,  K:16, Mg:14, Zn:16, B12:10, folate:20, omega3:2  },
+  "Lamb & Couscous":         { vitD:0,  Ca:4,  Fe:20, vitC:8,  K:14, Mg:12, Zn:22, B12:30, folate:15, omega3:3  },
+  "Power Oatmeal":           { vitD:6,  Ca:20, Fe:18, vitC:5,  K:15, Mg:22, Zn:12, B12:10, folate:12, omega3:2  },
+  "Egg & Rice Bowl":         { vitD:6,  Ca:6,  Fe:14, vitC:5,  K:10, Mg:12, Zn:12, B12:18, folate:18, omega3:2  },
+  "Protein Pancakes":        { vitD:8,  Ca:15, Fe:16, vitC:5,  K:8,  Mg:8,  Zn:10, B12:18, folate:15, omega3:2  },
+  "Mass Shake":              { vitD:6,  Ca:25, Fe:8,  vitC:8,  K:20, Mg:14, Zn:14, B12:15, folate:8,  omega3:2  },
+  "Cottage Cheese & Fruit":  { vitD:4,  Ca:14, Fe:4,  vitC:20, K:10, Mg:8,  Zn:8,  B12:12, folate:8,  omega3:1  },
+  "PB Banana Toast":         { vitD:0,  Ca:6,  Fe:10, vitC:12, K:18, Mg:14, Zn:6,  B12:0,  folate:12, omega3:1  },
+  "Beef Burrito Bowl":       { vitD:2,  Ca:15, Fe:25, vitC:15, K:18, Mg:16, Zn:30, B12:35, folate:20, omega3:2  },
+  "Steak Wrap":              { vitD:2,  Ca:12, Fe:22, vitC:30, K:15, Mg:14, Zn:28, B12:30, folate:18, omega3:2  },
+  "Greek Yogurt & Granola":  { vitD:6,  Ca:22, Fe:6,  vitC:8,  K:10, Mg:10, Zn:10, B12:22, folate:6,  omega3:2  },
+  "Protein Bar & Banana":    { vitD:4,  Ca:10, Fe:10, vitC:12, K:14, Mg:10, Zn:10, B12:8,  folate:10, omega3:1  },
+  "Tuna & Rice Cakes":       { vitD:12, Ca:4,  Fe:6,  vitC:2,  K:8,  Mg:8,  Zn:8,  B12:28, folate:6,  omega3:10 },
+  "Steak & Baked Potato":    { vitD:2,  Ca:6,  Fe:20, vitC:25, K:28, Mg:14, Zn:35, B12:40, folate:12, omega3:2  },
+  "Salmon Bowl":             { vitD:38, Ca:8,  Fe:10, vitC:12, K:22, Mg:18, Zn:14, B12:48, folate:18, omega3:58 },
+  "Beef & Pasta":            { vitD:0,  Ca:8,  Fe:22, vitC:8,  K:14, Mg:14, Zn:28, B12:32, folate:20, omega3:2  },
+};
+
+const MICRO_LABELS = { vitD:"Vitamin D", Ca:"Calcium", Fe:"Iron", vitC:"Vitamin C", K:"Potassium", Mg:"Magnesium", Zn:"Zinc", B12:"B12", folate:"Folate", omega3:"Omega-3" };
+
+// ─── Styles ────────────────────────────────────────────────────────────────────
+const S = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#f7f5f2;font-family:'Inter',sans-serif;font-weight:300;color:#1a1a1a}
+
+.app{min-height:100vh;background:#f7f5f2}
+
+/* ── STEP FLOW ── */
+.step-wrap{max-width:600px;margin:0 auto;padding:60px 24px}
+.step-logo{font-family:'DM Serif Display',serif;font-size:28px;color:#1a1a1a;letter-spacing:-0.5px;margin-bottom:8px}
+.step-logo span{color:#c9a84c}
+.step-eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#999;margin-bottom:40px}
+.step-title{font-family:'DM Serif Display',serif;font-size:38px;letter-spacing:-1px;line-height:1.1;margin-bottom:12px}
+.step-sub{font-size:14px;color:#777;line-height:1.7;margin-bottom:40px}
+
+.field{margin-bottom:20px}
+.field label{display:block;font-size:11px;letter-spacing:1px;color:#999;margin-bottom:8px;text-transform:uppercase}
+.field input{width:100%;background:#fff;border:1.5px solid #e8e4dc;border-radius:8px;padding:14px 16px;font-family:'Inter',sans-serif;font-size:15px;color:#1a1a1a;outline:none;transition:border-color 0.15s}
+.field input:focus{border-color:#c9a84c}
+
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.chip{padding:9px 18px;border:1.5px solid #e8e4dc;border-radius:30px;cursor:pointer;font-size:13px;color:#777;background:#fff;transition:all 0.15s;user-select:none}
+.chip:hover{border-color:#c9a84c;color:#1a1a1a}
+.chip.on{border-color:#1a1a1a;background:#1a1a1a;color:#f7f5f2}
+.chip.gold.on{border-color:#c9a84c;background:#c9a84c;color:#fff}
+
+.btn-primary{width:100%;background:#1a1a1a;color:#f7f5f2;border:none;border-radius:8px;padding:16px;font-family:'Inter',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;transition:opacity 0.15s;margin-top:8px}
+.btn-primary:hover{opacity:0.85}
+.btn-primary:disabled{opacity:0.35;cursor:not-allowed}
+.btn-back{background:none;border:none;font-size:13px;color:#aaa;cursor:pointer;padding:0;margin-bottom:32px;display:flex;align-items:center;gap:6px;letter-spacing:0.5px}
+.btn-back:hover{color:#777}
+
+.progress{display:flex;gap:6px;margin-bottom:48px}
+.progress-dot{width:6px;height:6px;border-radius:50%;background:#e8e4dc;transition:background 0.3s}
+.progress-dot.done{background:#1a1a1a}
+
+/* ── RESULTS ── */
+.results-wrap{max-width:900px;margin:0 auto;padding:48px 24px}
+.results-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:32px;border-bottom:1px solid #e8e4dc}
+.results-cal{font-family:'DM Serif Display',serif;font-size:72px;color:#1a1a1a;line-height:1;letter-spacing:-3px}
+.results-cal-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-top:6px}
+.results-goal-badge{background:#1a1a1a;color:#e8d5a3;padding:6px 16px;border-radius:20px;font-size:11px;letter-spacing:2px;text-transform:uppercase}
+
+.macro-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+.macro-tile{background:#fff;border:1px solid #e8e4dc;border-radius:10px;padding:20px}
+.macro-tile-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#bbb;margin-bottom:10px}
+.macro-tile-val{font-family:'DM Serif Display',serif;font-size:32px;line-height:1;margin-bottom:2px}
+.macro-tile-sub{font-size:10px;color:#bbb}
+.mt-p .macro-tile-val{color:#c9a96e}
+.mt-c .macro-tile-val{color:#6e9a84}
+.mt-f .macro-tile-val{color:#9a6e9a}
+.mt-fiber .macro-tile-val{color:#6e849a}
+
+.macro-bar{display:flex;height:4px;border-radius:2px;gap:2px;margin-bottom:32px}
+.mb-seg{border-radius:2px}
+
+/* ── MEAL PLANNER ── */
+.planner-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.planner-title{font-family:'DM Serif Display',serif;font-size:24px}
+.quality-badges{display:flex;gap:6px;flex-wrap:wrap}
+.quality-badge{font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:20px;background:#f0ead8;color:#9a7830;border:1px solid #e8d5a3}
+
+.meal-slot{background:#fff;border:1px solid #e8e4dc;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.meal-slot-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #f0ece8;background:#faf9f7}
+.meal-slot-name{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#aaa}
+.meal-slot-cals{font-size:11px;color:#bbb}
+
+.meal-opt{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;cursor:pointer;transition:background 0.1s;border-bottom:1px solid #f7f5f2}
+.meal-opt:last-child{border-bottom:none}
+.meal-opt:hover{background:#faf9f7}
+.meal-opt.on{background:#fffdf5}
+
+.meal-radio{width:14px;height:14px;border-radius:50%;border:2px solid #ddd;flex-shrink:0;margin-top:3px;transition:all 0.15s}
+.meal-opt.on .meal-radio{border-color:#c9a84c;background:#c9a84c}
+
+.meal-opt-body{flex:1;min-width:0}
+.meal-opt-name{font-size:13px;color:#1a1a1a;margin-bottom:3px;font-weight:400}
+.meal-opt-desc{font-size:11px;color:#aaa;line-height:1.5}
+.meal-opt-tags{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.meal-opt-tag{font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:0.5px}
+.tag-organic{background:#eaf4ea;color:#4a7a4a}
+.tag-grassfed{background:#f4f0ea;color:#7a6040}
+.tag-pasture{background:#eaf0f4;color:#4a6070}
+.tag-wildcaught{background:#eaf4f4;color:#3a7070}
+.tag-nongmo{background:#f4eaf0;color:#703060}
+.tag-usda{background:#f0f0f0;color:#888}
+
+.meal-opt-usda{font-size:10px;color:#bbb;margin-top:4px;font-style:italic}
+.meal-opt-macros{font-size:10px;color:#ccc;margin-top:4px}
+.meal-opt-macros span{color:#aaa}
+
+.usda-loading{font-size:10px;color:#ccc;font-style:italic;padding:12px 18px}
+
+/* ── MICRO SCORECARD ── */
+.micro-card{background:#fff;border:1px solid #e8e4dc;border-radius:12px;padding:24px;margin-top:24px}
+.micro-card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.micro-card-title{font-family:'DM Serif Display',serif;font-size:20px}
+.micro-card-badge{font-size:9px;letter-spacing:2px;text-transform:uppercase;background:#1a1a1a;color:#e8d5a3;padding:4px 12px;border-radius:20px}
+.micro-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.micro-row{}
+.micro-row-hdr{display:flex;justify-content:space-between;font-size:10px;color:#aaa;margin-bottom:5px;letter-spacing:0.5px}
+.micro-row-hdr span{font-weight:500}
+.micro-bar-bg{background:#f0ece8;border-radius:3px;height:4px;overflow:hidden}
+.micro-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease}
+.micro-gate{margin-top:20px;padding:16px;background:#faf9f7;border-radius:8px;text-align:center;border:1px dashed #e8e4dc}
+.micro-gate p{font-size:12px;color:#aaa;margin-bottom:12px;line-height:1.6}
+.micro-gate-btn{background:#1a1a1a;color:#e8d5a3;border:none;padding:10px 24px;border-radius:6px;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:'Inter',sans-serif}
+
+.insight-bar{background:#fffdf5;border:1px solid #f0e8cc;border-radius:10px;padding:16px 20px;margin-bottom:28px;font-size:12px;color:#8a7040;line-height:1.7}
+.insight-bar strong{color:#5a4020}
+
+.recalc-btn{font-size:11px;color:#aaa;background:none;border:1px solid #e8e4dc;border-radius:6px;padding:6px 14px;cursor:pointer;letter-spacing:1px;transition:all 0.15s}
+.recalc-btn:hover{color:#1a1a1a;border-color:#1a1a1a}
+
+.spinner-sm{display:inline-block;width:10px;height:10px;border:1.5px solid #ddd;border-top-color:#c9a84c;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.ai-section{background:#fff;border:1px solid #e8e4dc;border-radius:12px;padding:24px;margin-top:24px}
+.ai-section-title{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:6px}
+.ai-section-sub{font-size:12px;color:#aaa;margin-bottom:20px}
+.ai-generate-btn{width:100%;background:#f7f5f2;border:1.5px solid #e8e4dc;border-radius:8px;padding:14px;font-family:'Inter',sans-serif;font-size:13px;color:#555;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:10px}
+.ai-generate-btn:hover{border-color:#c9a84c;color:#1a1a1a}
+.ai-generate-btn:disabled{opacity:0.4;cursor:not-allowed}
+.ai-output{margin-top:16px;font-size:12px;color:#555;line-height:1.9;white-space:pre-wrap;background:#faf9f7;border-radius:8px;padding:16px}
+
+@media(max-width:640px){
+  .macro-row{grid-template-columns:1fr 1fr}
+  .results-cal{font-size:52px}
+  .micro-grid{grid-template-columns:1fr}
+  .results-header{flex-direction:column;gap:16px}
+}
+`;
+
+// ─── Steps ─────────────────────────────────────────────────────────────────────
+const STEPS = ["basics","activity","goal","preferences","store","results"];
+
+function App() {
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState({
+    age:"", weight:"", height:"", sex:"male", unit:"imperial",
+    activity:"moderate", goal:"maintain",
+    diet:"None", foodLikes:"", foodAvoid:"",
+    qualities:{ organic:false, grassfed:false, pasture:false, wildcaught:false, nongmo:false },
+    store:"none",
+  });
+  const [targets, setTargets] = useState(null);
+  const [slots, setSlots] = useState([]);
+  const [selected, setSelected] = useState({});
+  const [usdaCache, setUsdaCache] = useState({});
+  const [usdaLoading, setUsdaLoading] = useState(false);
+  const [aiOutput, setAiOutput] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiDone, setAiDone] = useState(false);
+
+  const set = (k,v) => setForm(f => ({...f,[k]:v}));
+  const setQ = (k) => setForm(f => ({...f, qualities:{...f.qualities,[k]:!f.qualities[k]}}));
+
+  const wl = form.unit==="imperial"?"lbs":"kg";
+  const hl = form.unit==="imperial"?"in":"cm";
+  const anyQuality = Object.values(form.qualities).some(Boolean);
+
+  // Compute active quality tag labels
+  const qualityLabels = {organic:"Organic",grassfed:"Grass-fed",pasture:"Pasture-raised",wildcaught:"Wild-caught",nongmo:"Non-GMO"};
+  const activeQualityTags = Object.entries(form.qualities).filter(([,v])=>v).map(([k])=>k);
+
+  function goNext() {
+    // Step 4 is the last step before results (store selection)
+    if (step === 4) {
+      const t = calcTargets(form);
+      if (!t) return;
+      setTargets(t);
+      const tmpl = getTemplates(form.goal);
+      setSlots(tmpl);
+      const defaults = {};
+      tmpl.forEach((_,i) => { defaults[i] = 0; });
+      setSelected(defaults);
+      loadUSDA(tmpl);
+      setStep(5);
+      return;
+    }
+    if (step < 5) {
+      setStep(s => s+1);
+    }
+  }
+
+  async function loadUSDA(tmpl) {
+    setUsdaLoading(true);
+    const cache = {};
+    for (const slot of tmpl) {
+      for (const opt of slot.options) {
+        const q = buildSearchQuery(opt.search, form.qualities, form.store);
+        if (!cache[q]) {
+          const results = await searchUSDA(q);
+          cache[q] = results;
         }
       }
     }
-    onDone();
-  } catch(e) { onError(e); }
-}
-
-function App() {
-  const [form, setForm] = useState({
-    age: "", weight: "", height: "", sex: "male",
-    activity: "moderate", goal: "maintain", unit: "imperial", diet: "None",
-    foodLikes: "", foodAvoid: "",
-    steps: "", cyclePhase: "none", ifWindow: "none"
-  });
-  const [results, setResults] = useState(null);
-  const [view, setView] = useState("day");
-  const [activeDay, setActiveDay] = useState(0);
-  const [aiOutput, setAiOutput] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiGenerated, setAiGenerated] = useState(false);
-  const [dayAiOutput, setDayAiOutput] = useState("");
-  const [dayAiLoading, setDayAiLoading] = useState(false);
-  const prevResultsRef = useRef(null);
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const hasPreferences = form.foodLikes.trim() || form.foodAvoid.trim();
-
-  const calculate = () => {
-    const r = calcTargets(form);
-    if (r) { setResults(r); setAiOutput(""); setAiGenerated(false); setDayAiOutput(""); }
-  };
-
-  function buildPrompt(results, form, detailed, usdaData) {
-    const dietNote = form.diet !== "None" ? `Dietary preference: ${form.diet}.` : "";
-    const likesNote = form.foodLikes.trim() ? `Foods the person enjoys: ${form.foodLikes}.` : "";
-    const avoidNote = form.foodAvoid.trim() ? `Foods to avoid completely: ${form.foodAvoid}.` : "";
-    const goalLabel = GOALS[form.goal].label;
-    const ifNote = form.ifWindow === "16_8" ? "Meal timing: 16:8 IF — structure all meals within an 8-hour eating window (e.g. 12pm–8pm)." :
-                   form.ifWindow === "18_6" ? "Meal timing: 18:6 IF — structure all meals within a 6-hour eating window (e.g. 1pm–7pm)." :
-                   form.ifWindow === "omad" ? "Meal timing: OMAD — provide ONE large meal hitting all daily targets." : "";
-    const proteinMealNote = `Aim for ~${results.proteinPerMeal}g protein per meal to maximize muscle protein synthesis.`;
-
-    let usdaNote = "";
-    if (usdaData && usdaData.length > 0) {
-      const foodLines = usdaData.map(f =>
-        "• " + f.name + (f.brand ? " (" + f.brand + ")" : "") + " — serving: " + f.serving + " | " + (f.calories || "?") + "kcal | " + (f.protein || "?") + "g protein | " + (f.carbs || "?") + "g carbs | " + (f.fat || "?") + "g fat"
-      ).join("\n");
-      usdaNote = "\n\nReal food data from USDA database — use these specific foods and their exact macros:\n" + foodLines + "\n\nIncorporate these real foods with exact serving sizes. Use precise quantities so macros add up correctly.";
-    }
-
-    return `You are a registered dietitian creating a personalized meal plan with exact nutritional accuracy.
-Target: ${results.calories} kcal/day | Protein: ${results.protein}g | Carbs: ${results.carbs}g | Fat: ${results.fat}g | Fiber: ${results.fiber}g
-Goal: ${goalLabel}
-${dietNote} ${likesNote} ${avoidNote} ${ifNote}
-${proteinMealNote}
-${usdaNote}
-Create ONE full day of eating ${form.ifWindow === "omad" ? "(1 large meal)" : form.ifWindow !== "none" ? "(3-4 meals within the eating window)" : "(5 meals: Breakfast, Morning Snack, Lunch, Afternoon Snack, Dinner)"} that hits these targets.
-${likesNote ? "Build meals primarily around the foods the person enjoys. " : ""}${avoidNote ? "Strictly avoid listed foods. " : ""}
-${detailed ? "For each meal include: food name with brand, exact serving size, calories, protein, carbs, fat. Then explain why it fits the goal." : "For each meal show: food name with brand, exact serving size, calories, protein, carbs, fat."}
-Be precise with quantities. Show running macro totals.
-End with a Day Total showing calories, protein, carbs, fat. Plain text only, no markdown symbols.`;
+    setUsdaCache(cache);
+    setUsdaLoading(false);
   }
 
-  const generateDayAiMeals = useCallback(async () => {
-    if (!results) return;
-    setDayAiLoading(true);
-    setDayAiOutput("");
-    const queries = [
-      ...form.foodLikes.split(",").map(f => f.trim()).filter(Boolean).slice(0, 3),
-      ...(form.goal.includes("cut") ? ["chicken breast", "greek yogurt"] : ["oats", "ground beef"]),
-    ].filter(Boolean);
-    const usdaData = queries.length > 0 ? await fetchUSDAFoods(queries) : [];
-    streamAI(
-      buildPrompt(results, form, false, usdaData),
-      chunk => setDayAiOutput(prev => prev + chunk),
-      () => setDayAiLoading(false),
-      () => { setDayAiOutput("Error generating. Please try again."); setDayAiLoading(false); }
-    );
-  }, [results, form]);
+  function getUSDAForOpt(opt) {
+    const q = buildSearchQuery(opt.search, form.qualities, form.store);
+    return usdaCache[q] || [];
+  }
 
-  const generateAiMeals = useCallback(async () => {
-    if (!results) return;
-    setAiLoading(true);
-    setAiOutput("");
-    setAiGenerated(false);
-    const queries = [
-      ...form.foodLikes.split(",").map(f => f.trim()).filter(Boolean).slice(0, 3),
-      ...(form.goal.includes("cut") ? ["chicken breast", "greek yogurt"] : ["oats", "ground beef"]),
-    ].filter(Boolean);
-    const usdaData = queries.length > 0 ? await fetchUSDAFoods(queries) : [];
-    streamAI(
-      buildPrompt(results, form, true, usdaData),
-      chunk => setAiOutput(prev => prev + chunk),
-      () => { setAiLoading(false); setAiGenerated(true); },
-      () => { setAiOutput("Error generating. Please try again."); setAiLoading(false); }
-    );
-  }, [results, form]);
+  function getSlotCals(slotIdx) {
+    if (!targets) return 0;
+    return Math.round(targets.cal * slots[slotIdx].pct);
+  }
 
-  useEffect(() => {
-    if (results && hasPreferences && results !== prevResultsRef.current) {
-      prevResultsRef.current = results;
-      generateDayAiMeals();
-    }
-  }, [results, hasPreferences, generateDayAiMeals]);
+  // Micronutrient score from selected meals
+  const microScore = (() => {
+    const totals = Object.fromEntries(Object.keys(MICRO_LABELS).map(k=>[k,0]));
+    slots.forEach((slot,i) => {
+      const optName = slot.options[selected[i]??0]?.name;
+      const profile = MICRO_DATA[optName];
+      if (profile) Object.keys(totals).forEach(k => { totals[k] += profile[k]||0; });
+    });
+    return totals;
+  })();
 
-  const weekDays = results ? buildWeek(results, form.goal) : [];
-  const dayMeals = results ? buildDayMeals(results.calories, form.goal) : [];
-  const wl = form.unit === "metric" ? "kg" : "lbs";
-  const hl = form.unit === "metric" ? "cm" : "in";
+  async function generateAI() {
+    if (!targets) return;
+    setAiLoading(true); setAiOutput(""); setAiDone(false);
+    const dietNote = form.diet!=="None"?`Diet: ${form.diet}.`:"";
+    const likesNote = form.foodLikes?`Enjoys: ${form.foodLikes}.`:"";
+    const avoidNote = form.foodAvoid?`Avoids: ${form.foodAvoid}.`:"";
+    const qualNote = anyQuality ? `Quality preferences: ${activeQualityTags.map(k=>qualityLabels[k]).join(", ")}.` : "";
+    const storeNote = form.store && form.store !== "none" ? `The person shops at ${GROCERY_STORES[form.store].label} — prioritize ${GROCERY_STORES[form.store].brand} brand products and brands available at that store.` : "";
+    const prompt = `You are a registered dietitian. Build a precise one-day meal plan.
+Targets: ${targets.cal} kcal | ${targets.protein}g protein | ${targets.carbs}g carbs | ${targets.fat}g fat | ${targets.fiber}g fiber
+Goal: ${GOALS[form.goal].label}. ${dietNote} ${likesNote} ${avoidNote} ${qualNote}
+Protein ~${targets.proteinPerMeal}g per meal. 5 meals.
+For each meal: name, exact ingredients with weights/portions, calories, P/C/F macros.
+Include specific brand names where relevant${anyQuality?" that match quality preferences":""}${form.store !== "none"?` available at ${GROCERY_STORES[form.store].label}`:""}. ${storeNote}
+End with Day Total. Plain text, no markdown or asterisks.`;
+    try {
+      const resp = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,stream:true,messages:[{role:"user",content:prompt}]})
+      });
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      while(true){
+        const {done,value} = await reader.read();
+        if(done) break;
+        buf += dec.decode(value,{stream:true});
+        const lines = buf.split("\n"); buf = lines.pop();
+        for(const line of lines){
+          if(line.startsWith("data: ")){
+            try{ const d=JSON.parse(line.slice(6)); if(d.type==="content_block_delta"&&d.delta?.text) setAiOutput(p=>p+d.delta.text); }catch{}
+          }
+        }
+      }
+      setAiDone(true);
+    } catch{ setAiOutput("Error generating. Please try again."); }
+    finally{ setAiLoading(false); }
+  }
 
-  return (
-    <div className="app">
-      <div className="header">
-        <div>
-          <div className="logo">Fuel</div>
-          <div className="logo-sub">Precision nutrition planning</div>
-        </div>
-        <div style={{ display:"flex", alignItems:"center", gap:24 }}>
-          {results && (
-            <div style={{ fontSize:11, color:"#444", textAlign:"right" }}>
-              <div style={{ color:"#666" }}>{GOALS[form.goal].label}</div>
-              <div>{results.calories.toLocaleString()} kcal · {results.protein}P · {results.carbs}C · {results.fat}F</div>
+  const canNext = {
+    0: form.age && form.weight && form.height,
+    1: true,
+    2: true,
+    3: true,
+    4: true,
+    5: true,
+  };
+
+  // ── Step renders ──────────────────────────────────────────────────────────────
+  function renderStep() {
+    if (step === 0) return (
+      <>
+        <h1 className="step-title">Let's build your plan.</h1>
+        <p className="step-sub">A few quick details and Fuel calculates exactly how much you should eat — no guesswork.</p>
+
+        <div className="chip-row">
+          {["imperial","metric"].map(u=>(
+            <div key={u} className={`chip ${form.unit===u?"on":""}`} onClick={()=>set("unit",u)}>
+              {u==="imperial"?"lbs / inches":"kg / cm"}
             </div>
-          )}
-
+          ))}
         </div>
-      </div>
 
-      <div className="main">
-        <aside className="sidebar">
-          <a href="/Fuel/index.html" style={{ display:"block", textAlign:"left", marginBottom:20, fontSize:10, color:"#555", textDecoration:"none", letterSpacing:2, textTransform:"uppercase" }}
-            onMouseOver={e => e.currentTarget.style.color="#e8d5a3"}
-            onMouseOut={e => e.currentTarget.style.color="#555"}>
-            ← Back to home
-          </a>
-          <div className="sec-label">Units & Basics</div>
-          <div className="rb-group cols2" style={{ marginBottom:14 }}>
-            {["metric","imperial"].map(u => (
-              <div key={u} className={`rb ${form.unit===u?"on":""}`} onClick={() => set("unit",u)}>
-                {u==="metric"?"Metric":"Imperial"}
-              </div>
-            ))}
-          </div>
-          <div className="rb-group cols2" style={{ marginBottom:14 }}>
-            {["male","female"].map(s => (
-              <div key={s} className={`rb ${form.sex===s?"on":""}`} onClick={() => set("sex",s)}>
-                {s[0].toUpperCase()+s.slice(1)}
-              </div>
-            ))}
+        <div className="chip-row">
+          {["male","female"].map(s=>(
+            <div key={s} className={`chip ${form.sex===s?"on":""}`} onClick={()=>set("sex",s)}>
+              {s[0].toUpperCase()+s.slice(1)}
+            </div>
+          ))}
+        </div>
+
+        <div className="field">
+          <label>Age</label>
+          <input type="number" placeholder="28" value={form.age} onChange={e=>set("age",e.target.value)} />
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+          <div className="field">
+            <label>Weight ({wl})</label>
+            <input type="number" placeholder={form.unit==="imperial"?"185":"84"} value={form.weight} onChange={e=>set("weight",e.target.value)} />
           </div>
           <div className="field">
-            <label>Age</label>
-            <input type="number" placeholder="25" value={form.age} onChange={e=>set("age",e.target.value)} />
+            <label>Height ({hl})</label>
+            <input type="number" placeholder={form.unit==="imperial"?"70":"178"} value={form.height} onChange={e=>set("height",e.target.value)} />
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            <div className="field">
-              <label>Weight ({wl})</label>
-              <input type="number" placeholder={form.unit==="metric"?"75":"165"} value={form.weight} onChange={e=>set("weight",e.target.value)} />
-            </div>
-            <div className="field">
-              <label>Height ({hl})</label>
-              <input type="number" placeholder={form.unit==="metric"?"175":"69"} value={form.height} onChange={e=>set("height",e.target.value)} />
-            </div>
-          </div>
+        </div>
+      </>
+    );
 
-          <hr className="divider" />
-          <div className="sec-label">Activity Level</div>
-          {Object.entries(ACTIVITY).map(([k,v]) => (
-            <div key={k} className="radio-row" onClick={() => set("activity",k)}>
-              <div className="radio-dot" style={{ border:`2px solid ${form.activity===k?"#e8d5a3":"#2a2a2a"}`, background:form.activity===k?"#e8d5a3":"transparent" }} />
-              <div>
-                <div className="radio-label" style={{ color:form.activity===k?"#e8d5a3":"#777" }}>{v.label}</div>
-                <div className="radio-desc">{v.desc}</div>
+    if (step === 1) return (
+      <>
+        <h1 className="step-title">How active are you?</h1>
+        <p className="step-sub">Be honest — this is the single biggest variable in your calorie target. Most people overestimate.</p>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {Object.entries(ACTIVITY).map(([k,v])=>(
+            <div key={k} onClick={()=>set("activity",k)} style={{
+              padding:"16px 20px", borderRadius:10, border:`1.5px solid ${form.activity===k?"#1a1a1a":"#e8e4dc"}`,
+              background:form.activity===k?"#1a1a1a":"#fff", cursor:"pointer", transition:"all 0.15s"
+            }}>
+              <div style={{fontSize:14,color:form.activity===k?"#f7f5f2":"#1a1a1a",marginBottom:3}}>{v.label}</div>
+              <div style={{fontSize:12,color:form.activity===k?"#888":"#aaa"}}>{v.desc}</div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+
+    if (step === 2) return (
+      <>
+        <h1 className="step-title">What's your goal?</h1>
+        <p className="step-sub">Your goal sets the calorie adjustment and macro split. You can change this anytime.</p>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {Object.entries(GOALS).map(([k,v])=>(
+            <div key={k} onClick={()=>set("goal",k)} style={{
+              padding:"16px 20px", borderRadius:10, border:`1.5px solid ${form.goal===k?"#c9a84c":"#e8e4dc"}`,
+              background:form.goal===k?"#fffdf5":"#fff", cursor:"pointer", transition:"all 0.15s",
+              display:"flex", justifyContent:"space-between", alignItems:"center"
+            }}>
+              <div style={{fontSize:14,color:"#1a1a1a"}}>{v.label}</div>
+              <div style={{fontSize:11,color:form.goal===k?"#c9a84c":"#bbb"}}>
+                {v.cal>0?"+":""}{v.cal!==0?v.cal+" kcal":"At TDEE"}
               </div>
             </div>
           ))}
+        </div>
+      </>
+    );
 
-          <hr className="divider" />
-          <div className="sec-label">Goal</div>
-          <div className="rb-group" style={{ marginBottom:0 }}>
-            {Object.entries(GOALS).map(([k,v]) => (
-              <div key={k} className={`rb ${form.goal===k?"on":""}`} style={{ textAlign:"left", padding:"9px 12px" }} onClick={() => set("goal",k)}>
-                {v.label}
-                <span style={{ float:"right", color:form.goal===k?"#887a4a":"#333", fontSize:10 }}>
-                  {v.cal>0?"+":""}{v.cal!==0?v.cal+" kcal":"TDEE"}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <hr className="divider" />
-          <div className="sec-label">Dietary Preference</div>
-          <div className="diet-chips">
-            {DIETS.map(d => (
-              <div key={d} className={`diet-chip ${form.diet===d?"on":""}`} onClick={() => set("diet",d)}>{d}</div>
-            ))}
-          </div>
-
-          <hr className="divider" />
-          <div className="sec-label">Daily Steps</div>
-          <div className="field">
-            <label>Average steps per day</label>
-            <input type="number" placeholder="e.g. 8000" value={form.steps} onChange={e=>set("steps",e.target.value)} />
-          </div>
-          <div style={{ fontSize:10, color:"#333", lineHeight:1.6, marginBottom:8 }}>
-            Steps add calories on top of your activity level for a more accurate target.
-          </div>
-
-          <hr className="divider" />
-          <div className="sec-label">Meal Timing</div>
-          <div className="rb-group" style={{ marginBottom:0 }}>
-            {[
-              ["none",   "Standard (3 meals + 2 snacks)"],
-              ["16_8",   "16:8 Intermittent Fasting"],
-              ["18_6",   "18:6 Intermittent Fasting"],
-              ["omad",   "OMAD (One Meal a Day)"],
-            ].map(([k,l]) => (
-              <div key={k} className={`rb ${form.ifWindow===k?"on":""}`}
-                style={{ textAlign:"left", padding:"9px 12px" }}
-                onClick={() => set("ifWindow",k)}>
-                {l}
-              </div>
-            ))}
-          </div>
-
-          {form.sex === "female" && (
-            <>
-              <hr className="divider" />
-              <div className="sec-label">Cycle Phase</div>
-              <div style={{ fontSize:10, color:"#333", lineHeight:1.6, marginBottom:12 }}>
-                Your metabolic rate shifts across your cycle. Select your current phase for a more accurate calorie target.
-              </div>
-              <div className="rb-group" style={{ marginBottom:0 }}>
-                {Object.entries({none:"N/A", follicular:"Follicular (Day 1–13)", ovulation:"Ovulation (Day 14)", luteal:"Luteal (Day 15–28)", menstrual:"Menstrual (Day 1–5)"}).map(([k,l]) => (
-                  <div key={k} className={`rb ${form.cyclePhase===k?"on":""}`}
-                    style={{ textAlign:"left", padding:"9px 12px" }}
-                    onClick={() => set("cyclePhase",k)}>
-                    {l}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          <hr className="divider" />
-          <div className="sec-label">Food Preferences</div>
-          <div className="field">
-            <label>Foods I enjoy</label>
-            <input type="text" placeholder="e.g. chicken, rice, eggs, Greek yogurt" value={form.foodLikes} onChange={e=>set("foodLikes",e.target.value)} />
-          </div>
-          <div className="field">
-            <label>Foods I avoid</label>
-            <input type="text" placeholder="e.g. fish, broccoli, dairy" value={form.foodAvoid} onChange={e=>set("foodAvoid",e.target.value)} />
-          </div>
-          <div style={{ fontSize:10, color:"#333", marginBottom:16, lineHeight:1.6 }}>
-            Used by the AI meal generator to personalise your plan.
-          </div>
-
-          <hr className="divider" />
-          <button className="calc-btn" onClick={calculate} disabled={!form.age || !form.weight || !form.height}>
-            Calculate Targets
-          </button>
-
-        </aside>
-
-        <main className="content">
-          {!results ? (
-            <div className="empty">
-              <div className="empty-icon">◎</div>
-              <div className="empty-title">Enter your profile</div>
-              <div className="empty-sub">Fill in the sidebar and calculate</div>
+    if (step === 4) return ( // grocery store step
+      <>
+        <h1 className="step-title">Where do you shop?</h1>
+        <p className="step-sub">Fuel will filter meal recommendations to show brands you can actually find at your store. Optional but makes your plan immediately shoppable.</p>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {Object.entries(GROCERY_STORES).map(([k,v])=>(
+            <div key={k} onClick={()=>set("store",k)} style={{
+              padding:"14px 20px", borderRadius:10, border:`1.5px solid ${form.store===k?"#c9a84c":"#e8e4dc"}`,
+              background:form.store===k?"#fffdf5":"#fff", cursor:"pointer", transition:"all 0.15s",
+              display:"flex", justifyContent:"space-between", alignItems:"center"
+            }}>
+              <div style={{fontSize:14,color:"#1a1a1a"}}>{v.label}</div>
+              {v.brand && <div style={{fontSize:11,color:form.store===k?"#c9a84c":"#bbb",fontStyle:"italic"}}>{v.brand.split(" ").filter(w=>w.length>0).map(w=>w[0].toUpperCase()+w.slice(1)).join(" ")}</div>}
             </div>
-          ) : (
-            <>
-              <div className="results-top">
-                <div>
-                  <div className="cal-number">{results.calories.toLocaleString()}</div>
-                  <div className="cal-label">kcal / day</div>
-                </div>
-                <div style={{ paddingBottom:8 }}>
-                  <div style={{ fontSize:11, color:"#555", marginBottom:4 }}>TDEE {results.tdee.toLocaleString()} kcal</div>
-                  <div style={{ fontSize:11, color:"#444" }}>
-                    {GOALS[form.goal].cal!==0 ? `${GOALS[form.goal].cal>0?"+":""}${GOALS[form.goal].cal} kcal adjustment` : "At maintenance"}
-                  </div>
-                </div>
-              </div>
+          ))}
+        </div>
+      </>
+    );
 
-              <div className="macro-bar">
-                <div className="macro-bar-seg" style={{ width:`${Math.round(results.adj.protein*100)}%`, background:"#c9a96e" }} />
-                <div className="macro-bar-seg" style={{ width:`${Math.round(results.adj.carbs*100)}%`, background:"#8eb8a3" }} />
-                <div className="macro-bar-seg" style={{ width:`${Math.round(results.adj.fat*100)}%`, background:"#a38eb8" }} />
-              </div>
+    if (step === 3) return (
+      <>
+        <h1 className="step-title">Preferences & quality.</h1>
+        <p className="step-sub">Tell Fuel what you eat, what you avoid, and your food quality standards. All optional.</p>
 
-              <div className="macro-grid">
-                <div className="macro-card mc-p">
-                  <div className="mlabel">Protein</div>
-                  <div className="mval">{results.protein}g</div>
-                  <div className="msub">{Math.round(results.adj.protein*100)}% of cals</div>
-                </div>
-                <div className="macro-card mc-c">
-                  <div className="mlabel">Carbs</div>
-                  <div className="mval">{results.carbs}g</div>
-                  <div className="msub">{Math.round(results.adj.carbs*100)}% of cals</div>
-                </div>
-                <div className="macro-card mc-f">
-                  <div className="mlabel">Fat</div>
-                  <div className="mval">{results.fat}g</div>
-                  <div className="msub">{Math.round(results.adj.fat*100)}% of cals</div>
-                </div>
-                <div className="macro-card mc-cal">
-                  <div className="mlabel">Fiber</div>
-                  <div className="mval">{results.fiber}g</div>
-                  <div className="msub">~14g per 1000 kcal</div>
-                </div>
-              </div>
+        <div className="field" style={{marginBottom:8}}>
+          <label>Dietary preference</label>
+          <div className="chip-row" style={{marginBottom:0}}>
+            {["None","Vegetarian","Vegan","Pescatarian","Keto","Paleo","Gluten-Free","Dairy-Free","Halal","Kosher"].map(d=>(
+              <div key={d} className={`chip ${form.diet===d?"on":""}`} onClick={()=>set("diet",d)} style={{fontSize:12,padding:"7px 14px"}}>{d}</div>
+            ))}
+          </div>
+        </div>
 
-              <div className="micro-grid">
-                {[
-                  { label:"Water", val:`${results.water}L`, sub:"0.033L per kg" },
-                  { label:"Sodium", val:"<2,300mg", sub:"daily upper limit" },
-                  { label:"Potassium", val:"3,400mg+", sub:"supports hydration" },
-                  { label:"Calcium", val:"1,000mg", sub:"bone & muscle" },
-                  { label:"Iron", val:form.sex==="female"?"18mg":"8mg", sub:"oxygen transport" },
-                  { label:"Vitamin D", val:"600 IU", sub:"immunity & hormones" },
-                  { label:"Magnesium", val:form.sex==="male"?"420mg":"320mg", sub:"muscle recovery" },
-                  { label:"Zinc", val:form.sex==="male"?"11mg":"8mg", sub:"immune & testosterone" },
-                  { label:"Omega-3", val:"1.6g", sub:"anti-inflammatory" },
-                ].map(m => (
-                  <div key={m.label} className="micro-card">
-                    <div className="mlabel">{m.label}</div>
-                    <div className="mval">{m.val}</div>
-                    <div className="msub">{m.sub}</div>
-                  </div>
-                ))}
-              </div>
+        <div className="field">
+          <label>Foods I enjoy</label>
+          <input type="text" placeholder="e.g. chicken thighs, eggs, greek yogurt, sweet potatoes" value={form.foodLikes} onChange={e=>set("foodLikes",e.target.value)} />
+        </div>
 
-              <div className="insight">
-                <strong>Why these numbers?</strong> BMR calculated via Mifflin-St Jeor. Base TDEE = <strong>{results.baseTdee.toLocaleString()} kcal</strong> with your activity level.
-                {results.stepCals > 0 && <span> Steps add <strong>+{results.stepCals} kcal</strong> for a total TDEE of <strong>{results.tdee.toLocaleString()} kcal</strong>.</span>}
-                {results.cycleAdj !== 0 && <span> Cycle phase adjustment: <strong>{results.cycleAdj > 0 ? "+" : ""}{results.cycleAdj} kcal</strong>.</span>}
-                {" "}Your {GOALS[form.goal].label.toLowerCase()} goal brings you to <strong>{results.calories.toLocaleString()} kcal/day</strong>.
-                {form.goal.includes("cut") && " Protein at 1g/lb bodyweight to protect lean muscle during a deficit."}
-                {form.goal.includes("bulk") && " Protein at 0.8g/lb bodyweight to support muscle growth."}
-                {form.goal==="maintain" && " Protein at 0.8g/lb bodyweight — standard recommendation for muscle maintenance."}
-                {" Protein is calculated from your bodyweight, not a percentage — the method used by sports dietitians."}
-                {" Aim for roughly "}<strong>{results.proteinPerMeal}g protein per meal</strong>{" across 5 meals to maximize muscle protein synthesis."}
-                {results.cycleNote && <span style={{display:"block", marginTop:8, color:"#7a9a7a"}}>{results.cycleNote}</span>}
-                {form.diet!=="None" && ` Meals tailored for a ${form.diet} diet.`}
-              </div>
+        <div className="field" style={{marginBottom:28}}>
+          <label>Foods I avoid</label>
+          <input type="text" placeholder="e.g. fish, broccoli, anything spicy" value={form.foodAvoid} onChange={e=>set("foodAvoid",e.target.value)} />
+        </div>
 
-              {form.ifWindow !== "none" && (
-                <div style={{ background:"#0a0a10", border:"1px solid #1a1a2a", borderRadius:5, padding:"12px 18px", marginBottom:20, fontSize:11, color:"#7a7aaa", lineHeight:1.7 }}>
-                  <strong style={{color:"#9a9acc"}}>Meal timing: </strong>
-                  {form.ifWindow === "16_8" && "16:8 — Eat within an 8-hour window (e.g. 12pm–8pm). Fast for 16 hours. All meals fit within this window."}
-                  {form.ifWindow === "18_6" && "18:6 — Eat within a 6-hour window (e.g. 1pm–7pm). Fast for 18 hours. Condense meals accordingly."}
-                  {form.ifWindow === "omad" && "OMAD — One large meal per day. Hit your full calorie and macro targets in a single sitting. Ensure adequate protein."}
+        <div style={{fontSize:11,letterSpacing:"1px",color:"#999",textTransform:"uppercase",marginBottom:12}}>Food Quality Standards</div>
+        <p style={{fontSize:12,color:"#aaa",marginBottom:16,lineHeight:1.6}}>
+          Select your standards and Fuel will filter meal options and AI recommendations to match — including specific brands.
+        </p>
+        <div className="chip-row">
+          {[["organic","🌿 Organic"],["grassfed","🐄 Grass-fed"],["pasture","🥚 Pasture-raised"],["wildcaught","🐟 Wild-caught"],["nongmo","✓ Non-GMO"]].map(([k,l])=>(
+            <div key={k} className={`chip gold ${form.qualities[k]?"on":""}`} onClick={()=>setQ(k)} style={{fontSize:12}}>{l}</div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  // ── Results view ──────────────────────────────────────────────────────────────
+  if (step === 5 && targets) return (
+    <>
+      <style>{S}</style>
+      <div className="app">
+        <div className="results-wrap">
+          {/* Header */}
+          <div className="results-header">
+            <div>
+              <div className="results-cal">{targets.cal.toLocaleString()}</div>
+              <div className="results-cal-sub">calories per day</div>
+            </div>
+            <div style={{textAlign:"right",display:"flex",flexDirection:"column",gap:10,alignItems:"flex-end"}}>
+              <div className="results-goal-badge">{GOALS[form.goal].label}</div>
+              <div style={{fontSize:11,color:"#bbb"}}>TDEE {targets.tdee.toLocaleString()} kcal</div>
+              <button className="recalc-btn" onClick={()=>setStep(0)}>← Recalculate</button>
+            </div>
+          </div>
+
+          {/* Macro bar */}
+          <div className="macro-bar" style={{marginBottom:16}}>
+            <div className="mb-seg" style={{width:`${targets.pPct}%`,background:"#c9a96e"}} />
+            <div className="mb-seg" style={{width:`${targets.cPct}%`,background:"#6e9a84"}} />
+            <div className="mb-seg" style={{width:`${targets.fPct}%`,background:"#9a6e9a"}} />
+          </div>
+
+          {/* Macro tiles */}
+          <div className="macro-row">
+            <div className="macro-tile mt-p">
+              <div className="macro-tile-label">Protein</div>
+              <div className="macro-tile-val">{targets.protein}g</div>
+              <div className="macro-tile-sub">{targets.pPct}% · 1g/lb bodyweight</div>
+            </div>
+            <div className="macro-tile mt-c">
+              <div className="macro-tile-label">Carbs</div>
+              <div className="macro-tile-val">{targets.carbs}g</div>
+              <div className="macro-tile-sub">{targets.cPct}% of calories</div>
+            </div>
+            <div className="macro-tile mt-f">
+              <div className="macro-tile-label">Fat</div>
+              <div className="macro-tile-val">{targets.fat}g</div>
+              <div className="macro-tile-sub">{targets.fPct}% of calories</div>
+            </div>
+            <div className="macro-tile mt-fiber">
+              <div className="macro-tile-label">Fiber</div>
+              <div className="macro-tile-val">{targets.fiber}g</div>
+              <div className="macro-tile-sub">14g per 1,000 kcal</div>
+            </div>
+          </div>
+
+          {/* Insight */}
+          <div className="insight-bar">
+            <strong>How we calculated this:</strong> Your BMR is {Math.round(targets.tdee / ACTIVITY[form.activity].mult).toLocaleString()} kcal.
+            With your {ACTIVITY[form.activity].label.toLowerCase()} activity level, your TDEE is {targets.tdee.toLocaleString()} kcal.
+            Your {GOALS[form.goal].label.toLowerCase()} goal {GOALS[form.goal].cal!==0?`adjusts by ${GOALS[form.goal].cal>0?"+":""}${GOALS[form.goal].cal} kcal`:"keeps you at TDEE"} — landing at <strong>{targets.cal.toLocaleString()} kcal/day</strong>.
+            Protein is set at 1g/lb bodyweight — the method sports dietitians actually use, not a generic percentage.
+            Aim for ~<strong>{targets.proteinPerMeal}g protein per meal</strong> across 5 meals to maximize muscle protein synthesis.
+            {form.diet!=="None" && ` Filtered for ${form.diet} dietary preference.`}
+            {anyQuality && ` Quality filters active: ${activeQualityTags.map(k=>qualityLabels[k]).join(", ")}.`}
+            {form.store && form.store !== "none" && ` Shopping at ${GROCERY_STORES[form.store].label} — showing ${GROCERY_STORES[form.store].brand?.split(" ").map(w=>w[0].toUpperCase()+w.slice(1)).join(" ")} and available brands.`}
+          </div>
+
+          {/* Meal Planner */}
+          <div className="planner-header">
+            <div className="planner-title">Your Meal Plan</div>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
+              {usdaLoading && <div style={{fontSize:11,color:"#aaa"}}><span className="spinner-sm"/>Loading real food data...</div>}
+              {form.store && form.store !== "none" && (
+                <div style={{fontSize:11,color:"#c9a84c",letterSpacing:1}}>
+                  🛒 {GROCERY_STORES[form.store].label} · {GROCERY_STORES[form.store].brand?.split(" ").map(w=>w[0].toUpperCase()+w.slice(1)).join(" ")}
                 </div>
               )}
+              {anyQuality && (
+                <div className="quality-badges">
+                  {activeQualityTags.map(k=>(
+                    <div key={k} className="quality-badge">{qualityLabels[k]}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <p style={{fontSize:12,color:"#aaa",marginBottom:20,lineHeight:1.6}}>
+            Pick your preferred option for each meal. Options are scaled to hit your calorie targets.
+            {anyQuality && " Filtered for your quality standards with real product matches from the USDA database."}
+          </p>
 
-              <div className="view-tabs">
-                {[["day","Day View"],["week","Weekly Plan"],["ai","AI Meal Generator"]].map(([k,l]) => (
-                  <div key={k} className={`view-tab ${view===k?"on":""}`} onClick={() => setView(k)}>{l}</div>
-                ))}
-              </div>
-
-              {view==="day" && (
-                <>
-                  {hasPreferences ? (
-                    <div className="ai-result">
-                      <div style={{ marginBottom:16 }}>
-                        <div className="ai-result-hdr">Your Personalised Day Plan</div>
-                        <div style={{ fontSize:11, color:"#555", marginBottom:20 }}>
-                          {form.foodLikes && <span style={{color:"#6a8a6a"}}>Likes: {form.foodLikes}</span>}
-                          {form.foodLikes && form.foodAvoid && " · "}
-                          {form.foodAvoid && <span style={{color:"#8a6a6a"}}>Avoids: {form.foodAvoid}</span>}
-                        </div>
-                        <div style={{ background:"#0a0f0a", border:"1px solid #1a2a1a", borderRadius:6, padding:"16px 20px", fontSize:12, color:"#3a5a3a", lineHeight:1.9, marginBottom:16, fontStyle:"italic" }}>
-                          Breakfast · Scrambled eggs with avocado on sourdough — 420 kcal<br/>
-                          Morning Snack · Greek yogurt with honey and fruit — 180 kcal<br/>
-                          Lunch · Ground beef rice bowl with sweet potato — 580 kcal<br/>
-                          Afternoon Snack · Apple with almond butter — 200 kcal<br/>
-                          Dinner · Baked fish with roasted vegetables — 480 kcal
-                        </div>
-                        <div style={{ background:"#080808", border:"1px solid #1a1410", borderRadius:6, padding:"20px 24px", textAlign:"center" }}>
-                          <div style={{ fontSize:13, color:"#888", marginBottom:8 }}>🔒 Unlock your real personalized plan</div>
-                          <div style={{ fontSize:11, color:"#444", marginBottom:16, lineHeight:1.6 }}>
-                            Pro generates a meal plan built around {form.foodLikes ? form.foodLikes.split(",")[0].trim() : "your foods"}, {form.foodAvoid ? `avoiding ${form.foodAvoid.split(",")[0].trim()}` : "your preferences"}, and your exact {results.calories} kcal target.
+          {slots.map((slot, si) => {
+            const chosen = selected[si] ?? 0;
+            const slotCals = getSlotCals(si);
+            return (
+              <div key={si} className="meal-slot">
+                <div className="meal-slot-hdr">
+                  <div className="meal-slot-name">{slot.slot}</div>
+                  <div className="meal-slot-cals">~{slotCals} kcal</div>
+                </div>
+                {slot.options.map((opt, oi) => {
+                  const usdaHits = getUSDAForOpt(opt);
+                  const topHit = usdaHits[0];
+                  const tags = activeQualityTags;
+                  return (
+                    <div key={oi} className={`meal-opt ${chosen===oi?"on":""}`} onClick={()=>setSelected(p=>({...p,[si]:oi}))}>
+                      <div className="meal-radio" />
+                      <div className="meal-opt-body">
+                        <div className="meal-opt-name">{opt.name}</div>
+                        <div className="meal-opt-desc">{opt.desc}</div>
+                        {tags.length > 0 && (
+                          <div className="meal-opt-tags">
+                            {tags.map(t => (
+                              <span key={t} className={`meal-opt-tag tag-${t}`}>{qualityLabels[t]}</span>
+                            ))}
                           </div>
-                          <a href="https://shawnsteuerer.github.io/Fuel/fuel_pricing" target="_blank"
-                            style={{ display:"inline-block", background:"#e8d5a3", color:"#080808", padding:"12px 32px", borderRadius:3, fontSize:11, letterSpacing:2, textTransform:"uppercase", textDecoration:"none", fontFamily:"'DM Mono',monospace", fontWeight:500 }}>
-                            Upgrade to Pro — $7.99/mo
-                          </a>
-                          <div style={{ fontSize:10, color:"#333", marginTop:10, letterSpacing:1 }}>Cancel anytime</div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="day-tabs">
-                        {DAY_VARIANTS.map((d,i) => (
-                          <div key={i} className={`day-tab ${activeDay===i?"on":""}`} onClick={()=>setActiveDay(i)}>
-                            {DAYS[i]} · {d.theme}
+                        )}
+                        {topHit && topHit.brand && (
+                          <div className="meal-opt-usda">
+                            ↗ <strong style={{color:"#888"}}>{topHit.brand}</strong> — {topHit.name} · {topHit.serving} · {topHit.kcal} kcal · {topHit.protein}g protein
                           </div>
-                        ))}
-                      </div>
-                      <div className="meal-card">
-                        <div className="meal-card-hdr">
-                          <div className="meal-card-title">{DAYS[activeDay]} — {DAY_VARIANTS[activeDay].theme}</div>
-                          <div className="meal-card-total">Total: <span>{results.calories} kcal</span></div>
-                        </div>
-                        {dayMeals.map((m,i) => (
-                          <div key={i} className="meal-row">
-                            <div className="meal-time">{m.name}</div>
-                            <div className="meal-name">{m.desc}</div>
-                            <div className="meal-cals">{m.cals} kcal</div>
+                        )}
+                        {topHit && !topHit.brand && (
+                          <div className="meal-opt-usda">
+                            ↗ {topHit.name} · {topHit.serving} · {topHit.kcal} kcal · {topHit.protein}g protein
                           </div>
-                        ))}
+                        )}
+                        {!topHit && usdaLoading && (
+                          <div className="meal-opt-usda"><span className="spinner-sm"/>Finding products...</div>
+                        )}
                       </div>
-                      <div style={{ fontSize:10, color:"#333", marginTop:8 }}>
-                        Tip: Add foods you enjoy in the sidebar to get a personalised plan.
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-
-              {view==="week" && (
-                <>
-                  <div style={{ fontSize:11, color:"#444", marginBottom:16 }}>
-                    Weekend calories are slightly higher (+100 kcal) to allow for flexibility.
-                  </div>
-                  <div className="week-grid">
-                    {weekDays.map((d,i) => (
-                      <div key={i} className="week-day">
-                        <div className="week-day-name">{d.day}</div>
-                        <div className="week-day-cal">{d.calories.toLocaleString()}</div>
-                        <div className="week-day-kcal">kcal · {d.theme}</div>
-                        <div className="week-day-meals">
-                          {d.meals.map((m,j) => (
-                            <div key={j} className="week-meal-chip">{m.desc}</div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ fontSize:10, color:"#333", marginTop:16, display:"flex", justifyContent:"space-between" }}>
-                    <span>Weekly total: {weekDays.reduce((s,d)=>s+d.calories,0).toLocaleString()} kcal</span>
-                    <span>Weekly avg: {Math.round(weekDays.reduce((s,d)=>s+d.calories,0)/7).toLocaleString()} kcal/day</span>
-                  </div>
-                </>
-              )}
-
-              {view==="ai" && (
-                <div>
-                  {/* Pro upsell - AI generator paywall */}
-                  <div style={{
-                    background: "linear-gradient(135deg, #0f0f0a 0%, #1a1608 100%)",
-                    border: "1px solid #2a2410",
-                    borderRadius: 8,
-                    padding: 40,
-                    textAlign: "center",
-                    marginBottom: 20
-                  }}>
-                    <div style={{ fontSize: 36, marginBottom: 16 }}>✦</div>
-                    <div style={{
-                      fontFamily: "'DM Serif Display', serif",
-                      fontSize: 26,
-                      color: "#e8d5a3",
-                      marginBottom: 10,
-                      letterSpacing: -0.5
-                    }}>AI Meal Generator</div>
-                    <div style={{ fontSize: 12, color: "#666", lineHeight: 1.7, marginBottom: 28, maxWidth: 380, margin: "0 auto 28px" }}>
-                      Get a completely personalized day of eating built around your exact calorie targets, macros, and food preferences. Every generation is unique.
                     </div>
+                  );
+                })}
+              </div>
+            );
+          })}
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 320, margin: "0 auto 28px" }}>
-                      {["Unlimited AI meal generation", "Meals built around your food preferences", "Respects your dietary restrictions", "New plan every time you generate"].map(f => (
-                        <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "#8eb8a3" }}>
-                          <span style={{ color: "#8eb8a3", fontSize: 14 }}>✓</span> {f}
-                        </div>
-                      ))}
-                    </div>
-
-                    <a
-                      href="https://shawnsteuerer.github.io/Fuel/fuel_pricing"
-                      target="_blank"
-                      style={{
-                        display: "inline-block",
-                        background: "#e8d5a3",
-                        color: "#080808",
-                        padding: "14px 40px",
-                        borderRadius: 3,
-                        fontSize: 12,
-                        letterSpacing: 2,
-                        textTransform: "uppercase",
-                        textDecoration: "none",
-                        fontFamily: "'DM Mono', monospace",
-                        fontWeight: 500,
-                        transition: "opacity 0.15s",
-                        marginBottom: 12,
-                        display: "block",
-                        maxWidth: 280,
-                        margin: "0 auto 12px"
-                      }}
-                      onMouseOver={e => e.target.style.opacity = 0.85}
-                      onMouseOut={e => e.target.style.opacity = 1}
-                    >
-                      Upgrade to Pro — $7.99/mo
-                    </a>
-                    <div style={{ fontSize: 10, color: "#333", letterSpacing: 1 }}>
-                      Cancel anytime · No commitment
+          {/* Micronutrient Scorecard */}
+          <div className="micro-card">
+            <div className="micro-card-hdr">
+              <div className="micro-card-title">Micronutrient Scorecard</div>
+              <div className="micro-card-badge">Live · updates as you swap</div>
+            </div>
+            <div className="micro-grid">
+              {Object.entries(MICRO_LABELS).map(([k,label]) => {
+                const pct = Math.min(microScore[k]||0, 100);
+                const color = pct>=80?"#6e9a84":pct>=50?"#c9a84c":"#c97a6e";
+                return (
+                  <div key={k} className="micro-row">
+                    <div className="micro-row-hdr">{label}<span>{pct}% DV</span></div>
+                    <div className="micro-bar-bg">
+                      <div className="micro-bar-fill" style={{width:`${pct}%`,background:color}} />
                     </div>
                   </div>
+                );
+              })}
+            </div>
+            <div className="micro-gate">
+              <p>🔒 Pro shows exact mg/mcg amounts, flags deficiencies, suggests specific food swaps to hit 100% of every nutrient, and generates a full weekly micronutrient report.</p>
+              <button className="micro-gate-btn">Upgrade to Pro — $7.99/mo</button>
+            </div>
+          </div>
 
-                  <div style={{ background: "#0c0c0c", border: "1px solid #161616", borderRadius: 7, padding: 20 }}>
-                    <div style={{ fontSize: 10, color: "#333", letterSpacing: 3, textTransform: "uppercase", marginBottom: 14 }}>Preview — what you'll get</div>
-                    <div style={{ fontSize: 12, color: "#3a4a3a", lineHeight: 1.9, fontStyle: "italic" }}>
-                      Breakfast · Scrambled eggs with avocado on sourdough toast — 420 kcal<br/>
-                      Morning Snack · Greek yogurt with honey and mixed berries — 180 kcal<br/>
-                      Lunch · Ground beef rice bowl with sweet potato and greens — 580 kcal<br/>
-                      Afternoon Snack · Apple slices with almond butter — 200 kcal<br/>
-                      Dinner · Baked salmon with roasted vegetables — 480 kcal<br/>
-                      <span style={{ color: "#555" }}>Day Total: {results.calories} kcal · {results.protein}g protein</span>
-                    </div>
-                    <div style={{ marginTop: 14, padding: "10px 14px", background: "#080808", borderRadius: 4, fontSize: 10, color: "#2a2a2a", textAlign: "center" }}>
-                      🔒 Upgrade to Pro to generate your real personalized plan
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </main>
+          {/* AI Generator */}
+          <div className="ai-section">
+            <div className="ai-section-title">AI Meal Generator</div>
+            <div className="ai-section-sub">
+              Generate a fully personalized day of eating using real branded foods
+              {anyQuality ? ` filtered for ${activeQualityTags.map(k=>qualityLabels[k]).join(", ")}` : ""}.
+            </div>
+            <button className="ai-generate-btn" onClick={generateAI} disabled={aiLoading}>
+              {aiLoading ? <><span className="spinner-sm"/>Generating your personalized plan...</> : aiDone ? "✦ Generate another" : "✦ Generate personalized meal day"}
+            </button>
+            {aiOutput && <div className="ai-output">{aiOutput}</div>}
+          </div>
+
+        </div>
       </div>
-    </div>
+    </>
+  );
+
+  // ── Step flow ─────────────────────────────────────────────────────────────────
+  return (
+    <>
+      <style>{S}</style>
+      <div className="app">
+        <div className="step-wrap">
+          <div className="step-logo">Fu<span>e</span>l</div>
+          <div className="step-eyebrow">Precision nutrition planning</div>
+
+          <div className="progress">
+            {STEPS.slice(0,-1).map((_,i)=>(
+              <div key={i} className={`progress-dot ${i<=step?"done":""}`} />
+            ))}
+          </div>
+
+          {step > 0 && (
+            <button className="btn-back" onClick={()=>setStep(s=>s-1)}>← Back</button>
+          )}
+
+          {renderStep()}
+
+          <button className="btn-primary" onClick={goNext} disabled={!canNext[step]}>
+            {step === 5 ? "Build my plan →" : "Continue →"}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
