@@ -425,6 +425,11 @@ End with a Day Total showing calories, protein, carbs, fat. Plain text only, no 
 
       <div className="main">
         <aside className="sidebar">
+          <a href="/Fuel/index.html" style={{ display:"block", textAlign:"left", marginBottom:20, fontSize:10, color:"#555", textDecoration:"none", letterSpacing:2, textTransform:"uppercase" }}
+            onMouseOver={e => e.currentTarget.style.color="#e8d5a3"}
+            onMouseOut={e => e.currentTarget.style.color="#555"}>
+            ← Back to home
+          </a>
           <div className="sec-label">Units & Basics</div>
           <div className="rb-group cols2" style={{ marginBottom:14 }}>
             {["metric","imperial"].map(u => (
@@ -552,11 +557,7 @@ End with a Day Total showing calories, protein, carbs, fat. Plain text only, no 
           <button className="calc-btn" onClick={calculate} disabled={!form.age || !form.weight || !form.height}>
             Calculate Targets
           </button>
-          <a href="/Fuel/index.html" style={{ display:"block", textAlign:"center", marginTop:14, fontSize:10, color:"#444", textDecoration:"none", letterSpacing:2, textTransform:"uppercase" }}
-            onMouseOver={e => e.currentTarget.style.color="#e8d5a3"}
-            onMouseOut={e => e.currentTarget.style.color="#444"}>
-            ← Back to home
-          </a>
+
         </aside>
 
         <main className="content">
