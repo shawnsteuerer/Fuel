@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fuel — Pricing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Karla:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --ink: #111008;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --muted: #8a8070;
+    --border: #e0d8cc;
+    --green: #3d5a40;
+    --green-light: #eef3ee;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Karla', sans-serif;
+    font-weight: 300;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 100; opacity: 0.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 60px;
+    background: rgba(245,240,232,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--ink); text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.2s; letter-spacing: 0.5px; }
+  .nav-back:hover { color: var(--ink); }
+  .nav-back::before { content: '←'; }
+
+  /* HERO */
+  .hero {
+    padding: 160px 60px 80px;
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 20px;
+    opacity: 0; animation: fadeUp 0.7s 0.1s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 5vw, 68px);
+    line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px;
+    opacity: 0; animation: fadeUp 0.7s 0.2s forwards;
+  }
+  .hero-title em { font-style: italic; color: var(--gold); }
+
+  .hero-sub {
+    font-size: 16px; color: var(--muted); line-height: 1.7; margin-bottom: 48px;
+    opacity: 0; animation: fadeUp 0.7s 0.3s forwards;
+  }
+
+  /* TOGGLE */
+  .billing-toggle {
+    display: inline-flex; align-items: center; gap: 14px;
+    background: #ede8de; border-radius: 40px; padding: 6px 8px;
+    margin-bottom: 64px;
+    opacity: 0; animation: fadeUp 0.7s 0.4s forwards;
+  }
+  .toggle-opt {
+    padding: 8px 20px; border-radius: 30px; cursor: pointer;
+    font-size: 12px; letter-spacing: 1px; transition: all 0.2s;
+    color: var(--muted); user-select: none;
+  }
+  .toggle-opt.on { background: var(--ink); color: var(--cream); }
+  .toggle-badge {
+    background: var(--green); color: var(--cream);
+    font-size: 10px; padding: 3px 10px; border-radius: 20px;
+    letter-spacing: 1px; font-weight: 500;
+  }
+
+  /* PRICING CARDS */
+  .cards-wrap {
+    max-width: 900px; margin: 0 auto;
+    padding: 0 60px 120px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    opacity: 0; animation: fadeUp 0.7s 0.5s forwards;
+  }
+
+  .card {
+    padding: 52px 48px;
+    background: var(--cream);
+    position: relative;
+  }
+
+  .card.pro {
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  .card-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px;
+    margin-bottom: 24px; font-weight: 600;
+  }
+
+  .card-free-badge {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px;
+    margin-bottom: 24px; font-weight: 600;
+  }
+
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; margin-bottom: 8px; letter-spacing: -0.5px;
+  }
+
+  .card-desc { font-size: 13px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; }
+  .card.pro .card-desc { color: #666; }
+
+  .price-wrap { margin-bottom: 36px; display: flex; align-items: flex-end; gap: 4px; }
+  .price { font-family: 'Playfair Display', serif; font-size: 56px; line-height: 1; letter-spacing: -2px; }
+  .card.pro .price { color: var(--gold-light); }
+  .price-period { font-size: 13px; color: var(--muted); padding-bottom: 8px; }
+  .card.pro .price-period { color: #555; }
+  .price-annual { font-size: 11px; color: #888; margin-top: 6px; }
+  .card.pro .price-annual { color: #555; }
+
+  .card-cta {
+    display: block; width: 100%;
+    padding: 15px; text-align: center;
+    border-radius: 3px; font-family: 'Karla', sans-serif;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; font-weight: 500; transition: all 0.2s;
+    text-decoration: none; margin-bottom: 36px;
+    border: none;
+  }
+
+  .card-cta.free {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink);
+  }
+  .card-cta.free:hover { background: #ede8de; }
+
+  .card-cta.pro-btn {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .card-cta.pro-btn:hover { background: var(--gold-light); }
+
+  .features-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  .features-list li {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .check { font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+  .check.yes { color: var(--green); }
+  .card.pro .check.yes { color: #8eb8a3; }
+  .check.no { color: #ccc; }
+  .card.pro .check.no { color: #333; }
+  .feat-text { color: var(--ink); }
+  .card.pro .feat-text { color: #aaa; }
+  .feat-text.dim { color: var(--muted); }
+  .card.pro .feat-text.dim { color: #555; }
+
+  .divider-line { border: none; border-top: 1px solid #1e1e1e; margin: 32px 0; }
+  .card:not(.pro) .divider-line { border-color: var(--border); }
+
+  .feature-group-label {
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: #444; margin-bottom: 16px;
+  }
+  .card:not(.pro) .feature-group-label { color: #aaa; }
+
+  /* COMPARISON */
+  .compare-wrap {
+    max-width: 860px; margin: 0 auto;
+    padding: 0 60px 120px;
+  }
+
+  .compare-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px; letter-spacing: -1px; margin-bottom: 48px; text-align: center;
+  }
+
+  .compare-table { width: 100%; border-collapse: collapse; }
+  .compare-table th {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted); font-weight: 400; padding: 12px 20px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .compare-table th:not(:first-child) { text-align: center; }
+  .compare-table td { padding: 16px 20px; border-bottom: 1px solid #f0ebe0; font-size: 13px; }
+  .compare-table td:not(:first-child) { text-align: center; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: #f5f0e8; }
+
+  .td-check-yes { color: var(--green); font-size: 16px; }
+  .td-check-no { color: #ccc; font-size: 16px; }
+  .td-highlight { font-weight: 500; color: var(--gold); font-size: 12px; }
+
+  /* FAQ */
+  .faq-wrap { max-width: 640px; margin: 0 auto; padding: 0 60px 120px; }
+  .faq-title { font-family: 'Playfair Display', serif; font-size: 36px; letter-spacing: -1px; margin-bottom: 40px; text-align: center; }
+
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-q {
+    padding: 20px 0; cursor: pointer; display: flex; justify-content: space-between;
+    align-items: center; font-size: 14px; font-weight: 400;
+    transition: color 0.2s; user-select: none;
+  }
+  .faq-q:hover { color: var(--gold); }
+  .faq-icon { font-size: 18px; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; }
+  .faq-item.open .faq-icon { transform: rotate(45deg); }
+  .faq-a { font-size: 13px; color: var(--muted); line-height: 1.8; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; }
+  .faq-item.open .faq-a { max-height: 200px; padding-bottom: 20px; }
+
+  /* BOTTOM CTA */
+  .bottom-cta {
+    background: var(--green); color: var(--cream);
+    text-align: center; padding: 100px 60px;
+  }
+  .bottom-cta-title { font-family: 'Playfair Display', serif; font-size: 48px; letter-spacing: -1.5px; margin-bottom: 16px; line-height: 1.1; }
+  .bottom-cta-sub { font-size: 15px; color: rgba(245,240,232,0.6); margin-bottom: 40px; }
+  .bottom-cta-btn {
+    display: inline-block; background: var(--gold); color: var(--ink);
+    padding: 16px 48px; border-radius: 2px; font-family: 'Karla', sans-serif;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    text-decoration: none; font-weight: 500; transition: background 0.2s;
+  }
+  .bottom-cta-btn:hover { background: var(--gold-light); }
+  .bottom-cta-note { font-size: 11px; color: rgba(245,240,232,0.3); margin-top: 16px; letter-spacing: 1px; }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink); color: #333;
+    padding: 40px 60px; display: flex;
+    justify-content: space-between; align-items: center; font-size: 12px;
+  }
+  .footer-logo { font-family: 'Playfair Display', serif; font-size: 18px; color: #2a2a2a; }
+  .footer-logo span { color: var(--gold); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { color: #333; text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: #666; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(17,16,8,0.7); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--cream); border-radius: 6px;
+    padding: 52px; max-width: 480px; width: 90%;
+    position: relative; animation: modalIn 0.3s ease;
+  }
+
+  @keyframes modalIn { from { opacity:0; transform: scale(0.96) translateY(10px); } to { opacity:1; transform: none; } }
+
+  .modal-close {
+    position: absolute; top: 20px; right: 24px;
+    background: none; border: none; font-size: 22px; color: var(--muted);
+    cursor: pointer; transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--ink); }
+
+  .modal-eyebrow { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 30px; letter-spacing: -1px; margin-bottom: 8px; }
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+
+  .modal-price { display: flex; align-items: flex-end; gap: 4px; margin-bottom: 28px; }
+  .modal-price-num { font-family: 'Playfair Display', serif; font-size: 48px; color: var(--gold); line-height: 1; }
+  .modal-price-period { font-size: 13px; color: var(--muted); padding-bottom: 6px; }
+
+  .modal-input {
+    width: 100%; background: #ede8de; border: 1px solid var(--border);
+    border-radius: 3px; padding: 13px 16px; font-family: 'Karla', sans-serif;
+    font-size: 14px; color: var(--ink); outline: none; margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .modal-input:focus { border-color: var(--gold); }
+  .modal-input::placeholder { color: var(--muted); }
+
+  .modal-btn {
+    width: 100%; background: var(--ink); color: var(--cream);
+    border: none; padding: 15px; border-radius: 3px;
+    font-family: 'Karla', sans-serif; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+    font-weight: 500; transition: background 0.2s; margin-bottom: 16px;
+  }
+  .modal-btn:hover { background: var(--green); }
+
+  .modal-note { font-size: 11px; color: #bbb; text-align: center; letter-spacing: 0.5px; line-height: 1.6; }
+
+  .modal-success { display: none; text-align: center; }
+  .modal-success-icon { font-size: 40px; margin-bottom: 16px; }
+  .modal-success-title { font-family: 'Playfair Display', serif; font-size: 26px; margin-bottom: 8px; }
+  .modal-success-sub { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform:none; } }
+
+  @media (max-width: 760px) {
+    nav { padding: 18px 24px; }
+    .hero { padding: 120px 24px 60px; }
+    .cards-wrap, .compare-wrap, .faq-wrap { padding: 0 24px 80px; }
+    .cards { grid-template-columns: 1fr; }
+    .card { padding: 40px 28px; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+    .bottom-cta { padding: 80px 24px; }
+    .bottom-cta-title { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">Fu<span>e</span>l</a>
+  <a href="/" class="nav-back">Back to home</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="eyebrow">Simple pricing</div>
+  <h1 class="hero-title">Start free.<br/>Upgrade when<br/><em>you're ready.</em></h1>
+  <p class="hero-sub">No credit card to get started. Upgrade to Pro when you want unlimited AI meal generation and the full experience.</p>
+
+  <div class="billing-toggle" id="billingToggle" style="display:none;">
+    <div class="toggle-opt on" data-period="monthly">Monthly</div>
+    <div class="toggle-opt" data-period="annual">Annual <span class="toggle-badge">Save 25%</span></div>
+  </div>
+</div>
+
+<!-- CARDS -->
+<div class="cards-wrap">
+  <div class="cards">
+
+    <!-- FREE -->
+    <div class="card">
+      <div class="card-free-badge">Free forever</div>
+      <div class="card-name">Basic</div>
+      <p class="card-desc">Everything you need to figure out your numbers and get started on a plan.</p>
+
+      <div class="price-wrap">
+        <div class="price">$0</div>
+        <div class="price-period">/month</div>
+      </div>
+
+      <a href="#" class="card-cta free" onclick="window.open('https://flourishing-cucurucho-bb3dfb.netlify.app','_blank'); return false;">
+        Start for free
+      </a>
+
+      <div class="feature-group-label">What's included</div>
+      <ul class="features-list">
+        <li><span class="check yes">✓</span><span class="feat-text">Calorie & macro calculator</span></li>
+        <li><span class="check yes">✓</span><span class="feat-text">5 goal types (cut, bulk, maintain)</span></li>
+        <li><span class="check yes">✓</span><span class="feat-text">Day view meal plans</span></li>
+        <li><span class="check yes">✓</span><span class="feat-text">Fiber & micronutrient targets</span></li>
+        <li><span class="check yes">✓</span><span class="feat-text">1 AI meal generation to try it</span></li>
+        <li><span class="check no">✗</span><span class="feat-text dim">Unlimited AI meal generation</span></li>
+        <li><span class="check no">✗</span><span class="feat-text dim">Weekly meal planner</span></li>
+        <li><span class="check no">✗</span><span class="feat-text dim">Save your profile</span></li>
+        <li><span class="check no">✗</span><span class="feat-text dim">Dietary preference filters</span></li>
+      </ul>
+    </div>
+
+    <!-- PRO -->
+    <div class="card pro">
+      <div class="card-badge">Most popular</div>
+      <div class="card-name">Pro</div>
+      <p class="card-desc">The full Fuel experience. Unlimited AI meals, weekly planning, and everything personalized to you.</p>
+
+      <div class="price-wrap" id="priceWrap">
+        <div class="price" id="priceNum">$7.99</div>
+        <div class="price-period" id="pricePeriod">/month</div>
+      </div>
+      <div class="price-annual" id="priceAnnual" style="display:none; margin-bottom: 12px;">Billed as $71.88/year</div>
+
+      <a href="https://buy.stripe.com/fZuaEY4WR46R3pm4Oo6Zy00" target="_blank" class="card-cta pro-btn" style="display:block;text-align:center;text-decoration:none;">
+        Get Pro — $7.99/mo
+      </a>
+
+      <div class="feature-group-label" style="color:#555;">Everything in Basic, plus</div>
+      <ul class="features-list">
+        <li><span class="check yes">✓</span><span class="feat-text" style="color:#ddd;">Unlimited AI meal generation</span></li>
+        <li><span class="check yes">✓</span><span class="feat-text" style="color:#ddd;">Full weekly meal planner</span></li>
+        <li><span class="check yes">✓</span><span class="feat-text" style="color:#ddd;">Save & sync your profile</span></li>
+        <li><span class="check yes">✓</span><span class="feat-text" style="color:#ddd;">All dietary preference filters</span></li>
+        <li><span class="check yes">✓</span><span class="feat-text" style="color:#ddd;">New features first</span></li>
+        <li><span class="check yes">✓</span><span class="feat-text" style="color:#ddd;">Priority support</span></li>
+      </ul>
+
+      <hr class="divider-line" />
+      <div style="font-size:11px; color:#444; line-height:1.7;">
+        Cancel anytime. No questions asked. Your data is yours — we never sell it.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- COMPARISON -->
+<div class="compare-wrap">
+  <h2 class="compare-title">How we compare</h2>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Fuel Free</th>
+        <th>Fuel Pro</th>
+        <th>MyFitnessPal</th>
+        <th>Cronometer</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Calorie calculator</td>
+        <td><span class="td-check-yes">✓</span></td>
+        <td><span class="td-check-yes">✓</span></td>
+        <td><span class="td-check-yes">✓</span></td>
+        <td><span class="td-check-yes">✓</span></td>
+      </tr>
+      <tr>
+        <td>Meal planning (no logging)</td>
+        <td><span class="td-check-yes">✓</span></td>
+        <td><span class="td-check-yes">✓</span></td>
+        <td><span class="td-check-no">✗</span></td>
+        <td><span class="td-check-no">✗</span></td>
+      </tr>
+      <tr>
+        <td>AI meal generation</td>
+        <td>1 try</td>
+        <td><span class="td-check-yes">✓ Unlimited</span></td>
+        <td><span class="td-check-no">✗</span></td>
+        <td><span class="td-check-no">✗</span></td>
+      </tr>
+      <tr>
+        <td>Weekly planner</td>
+        <td><span class="td-check-no">✗</span></td>
+        <td><span class="td-check-yes">✓</span></td>
+        <td>Paid only</td>
+        <td>Paid only</td>
+      </tr>
+      <tr>
+        <td>No food logging required</td>
+        <td><span class="td-check-yes">✓</span></td>
+        <td><span class="td-check-yes">✓</span></td>
+        <td><span class="td-check-no">✗</span></td>
+        <td><span class="td-check-no">✗</span></td>
+      </tr>
+      <tr>
+        <td>Monthly price</td>
+        <td><span class="td-highlight">Free</span></td>
+        <td><span class="td-highlight">$7.99</span></td>
+        <td>$19.99</td>
+        <td>$9.99</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- FAQ -->
+<div class="faq-wrap">
+  <h2 class="faq-title">Common questions</h2>
+
+  <div class="faq-item">
+    <div class="faq-q">Do I need a credit card to start? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Nope. The free plan is genuinely free with no card required. You only need to pay if you want to upgrade to Pro.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can I cancel anytime? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Yes, absolutely. Cancel from your account settings at any time and you won't be charged again. You keep Pro access until the end of your billing period.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">How accurate is the calorie calculator? <span class="faq-icon">+</span></div>
+    <div class="faq-a">We use the Mifflin-St Jeor equation, which is the gold standard used by registered dietitians. It's accurate within ~5% for most people. We recommend recalculating every 4–6 weeks as your weight changes.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What does the AI meal generator actually do? <span class="faq-icon">+</span></div>
+    <div class="faq-a">It generates a complete, personalized day of eating — breakfast, snacks, lunch, and dinner — tailored to your exact calorie and macro targets, your dietary preference, and your goal. Every generation is unique. Pro users can generate as many as they want.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Do I have to log food every day? <span class="faq-icon">+</span></div>
+    <div class="faq-a">No — and that's the whole point. Fuel gives you a plan to follow, not a diary to fill in. We built it specifically for people who find food logging tedious and unsustainable.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Is my data private? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Yes. We never sell your data to anyone. Your health information stays private. We only use it to generate your nutrition plan.</div>
+  </div>
+</div>
+
+<!-- BOTTOM CTA -->
+<div class="bottom-cta">
+  <div class="bottom-cta-title">Start eating right<br/>today. For free.</div>
+  <div class="bottom-cta-sub">No card. No commitment. Just your plan in 30 seconds.</div>
+  <a href="https://flourishing-cucurucho-bb3dfb.netlify.app" target="_blank" class="bottom-cta-btn">Try Fuel free</a>
+  <div class="bottom-cta-note">Upgrade to Pro anytime for $7.99/month</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Fu<span>e</span>l</div>
+  <div style="font-size:11px; color:#2a2a2a;">© 2026 Fuel. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<!-- MODAL REMOVED - Pro button links directly to Stripe -->
+
+<script>
+  // Billing toggle
+  document.querySelectorAll('.toggle-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.toggle-opt').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      const annual = btn.dataset.period === 'annual';
+      document.getElementById('priceNum').textContent = annual ? '$5.99' : '$7.99';
+      document.getElementById('pricePeriod').textContent = '/month';
+      document.getElementById('priceAnnual').style.display = annual ? 'block' : 'none';
+      // Update the pro button text
+      document.querySelector('.card-cta.pro-btn').innerHTML = annual ? 'Get Pro &mdash; $5.99/mo' : 'Get Pro &mdash; $7.99/mo';
+    });
+  });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+      const item = q.parentElement;
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How Many Calories Should I Eat to Lose Weight? | Fuel</title>
+<meta name="description" content="Find out exactly how many calories you need to lose weight based on your height, weight, age, and activity level. Includes a free calculator and meal planning tips." />
+<meta name="keywords" content="how many calories should I eat to lose weight, calorie deficit, TDEE calculator, weight loss calories, calorie calculator" />
+<link rel="canonical" href="https://flourishing-cucurucho-bb3dfb.netlify.app/blog" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --ink: #111008;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --muted: #8a8070;
+    --border: #e0d8cc;
+    --green: #3d5a40;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Karla', sans-serif;
+    font-weight: 300;
+    font-size: 17px;
+    line-height: 1.8;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 60px;
+    background: rgba(245,240,232,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--ink); text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-cta {
+    background: var(--ink); color: var(--cream);
+    padding: 9px 22px; border-radius: 2px; font-size: 12px;
+    letter-spacing: 1px; text-transform: uppercase; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .nav-cta:hover { background: var(--green); }
+
+  .hero {
+    padding: 140px 60px 60px;
+    max-width: 800px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .article-tag {
+    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 20px; display: block;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 58px);
+    line-height: 1.1; letter-spacing: -1.5px;
+    margin-bottom: 24px;
+  }
+
+  .article-meta {
+    font-size: 12px; color: var(--muted); letter-spacing: 1px;
+    display: flex; gap: 24px; flex-wrap: wrap;
+  }
+
+  .article-body {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 60px 100px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; letter-spacing: -0.5px;
+    margin: 56px 0 20px; line-height: 1.2;
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; margin: 36px 0 14px;
+  }
+
+  p { margin-bottom: 20px; color: #2a2520; }
+
+  ul, ol { margin: 0 0 20px 24px; }
+  ul li, ol li { margin-bottom: 10px; color: #2a2520; }
+
+  strong { font-weight: 500; color: var(--ink); }
+
+  .callout {
+    background: #f0ebe0; border-left: 3px solid var(--gold);
+    padding: 24px 28px; margin: 36px 0; border-radius: 0 4px 4px 0;
+  }
+  .callout p { margin-bottom: 0; font-size: 16px; }
+
+  .data-table {
+    width: 100%; border-collapse: collapse;
+    margin: 32px 0; font-size: 14px;
+  }
+  .data-table th {
+    background: var(--ink); color: var(--cream);
+    padding: 12px 16px; text-align: left;
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 400;
+  }
+  .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .data-table tr:hover td { background: #ede8de; }
+
+  .cta-box {
+    background: var(--ink); color: var(--cream);
+    border-radius: 8px; padding: 48px;
+    text-align: center; margin: 56px 0;
+  }
+  .cta-box h3 { color: var(--gold-light); font-size: 28px; margin: 0 0 12px; }
+  .cta-box p { color: #666; margin-bottom: 28px; font-size: 15px; }
+  .cta-box a {
+    display: inline-block; background: var(--gold);
+    color: var(--ink); padding: 14px 36px; border-radius: 2px;
+    text-decoration: none; font-size: 12px; letter-spacing: 2px;
+    text-transform: uppercase; font-weight: 500; transition: background 0.2s;
+  }
+  .cta-box a:hover { background: var(--gold-light); }
+  .cta-box .cta-note { font-size: 11px; color: #444; margin-top: 12px; margin-bottom: 0; }
+
+  .formula-box {
+    background: #0d0d0d; color: #e8d5a3;
+    border-radius: 6px; padding: 28px 32px; margin: 28px 0;
+    font-family: 'Karla', monospace; font-size: 14px; line-height: 2;
+  }
+  .formula-box .formula-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #555; margin-bottom: 12px; }
+
+  .example-box {
+    background: #f8f5ef; border: 1px solid var(--border);
+    border-radius: 6px; padding: 28px 32px; margin: 28px 0;
+  }
+  .example-box h4 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 14px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  .toc {
+    background: #f0ebe0; border: 1px solid var(--border);
+    border-radius: 6px; padding: 28px 32px; margin: 40px 0;
+  }
+  .toc-title { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  .toc ol { margin: 0 0 0 20px; }
+  .toc li { margin-bottom: 8px; font-size: 14px; }
+  .toc a { color: var(--ink); text-decoration: none; transition: color 0.2s; }
+  .toc a:hover { color: var(--gold); }
+
+  footer {
+    background: var(--ink); color: #444;
+    padding: 40px 60px; display: flex;
+    justify-content: space-between; align-items: center; font-size: 12px;
+  }
+  .footer-logo { font-family: 'Playfair Display', serif; font-size: 18px; color: #2a2a2a; }
+  .footer-logo span { color: var(--gold); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { color: #444; text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: #666; }
+
+  @media (max-width: 700px) {
+    nav { padding: 18px 20px; }
+    .hero, .article-body { padding-left: 24px; padding-right: 24px; }
+    h1 { font-size: 34px; }
+    .cta-box { padding: 32px 24px; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Fu<span>e</span>l</a>
+  <a href="/fuel_pricing" class="nav-cta">Try Fuel free</a>
+</nav>
+
+<div class="hero">
+  <span class="article-tag">Nutrition basics</span>
+  <h1>How Many Calories Should I Eat to Lose Weight?</h1>
+  <div class="article-meta">
+    <span>8 min read</span>
+    <span>Updated May 2026</span>
+    <span>Reviewed for accuracy</span>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p>If you've ever Googled this question, you've probably been hit with a wall of confusing formulas, contradictory advice, and apps that want you to log every almond you eat. This article cuts through all of that.</p>
+
+  <p>By the end, you'll know exactly how many calories you should eat to lose weight — calculated for your specific body — and a simple way to actually hit that number without obsessing over food.</p>
+
+  <div class="toc">
+    <div class="toc-title">What's in this article</div>
+    <ol>
+      <li><a href="#why-calories">Why calories matter for weight loss</a></li>
+      <li><a href="#how-many">How many calories do you actually need?</a></li>
+      <li><a href="#deficit">What calorie deficit should you aim for?</a></li>
+      <li><a href="#activity">How activity level changes everything</a></li>
+      <li><a href="#macros">What about protein, carbs, and fat?</a></li>
+      <li><a href="#practical">How to actually hit your calorie target</a></li>
+      <li><a href="#mistakes">The 3 most common mistakes</a></li>
+    </ol>
+  </div>
+
+  <h2 id="why-calories">Why Calories Matter for Weight Loss</h2>
+
+  <p>Weight loss comes down to one thing: energy balance. Your body burns a certain number of calories every day just to keep you alive and moving. If you eat less than that number, your body burns stored fat to make up the difference. That's weight loss.</p>
+
+  <p>This isn't a diet trend or a theory — it's thermodynamics. And it's why every successful diet, whether keto, intermittent fasting, or low-fat, works through the same mechanism: eating fewer calories than you burn.</p>
+
+  <div class="callout">
+    <p><strong>The key insight:</strong> You don't need to eat less food — you need to eat the right amount of food for your body and your goal. For most people, that's actually more food than they think, eaten smarter.</p>
+  </div>
+
+  <h2 id="how-many">How Many Calories Do You Actually Need?</h2>
+
+  <p>To find your calorie target, you need two numbers:</p>
+
+  <ol>
+    <li><strong>Your BMR (Basal Metabolic Rate)</strong> — how many calories your body burns at complete rest</li>
+    <li><strong>Your TDEE (Total Daily Energy Expenditure)</strong> — BMR adjusted for how active you are</li>
+  </ol>
+
+  <h3>Step 1: Calculate your BMR</h3>
+
+  <p>The most accurate formula for BMR is the <strong>Mifflin-St Jeor equation</strong>, which is what registered dietitians use:</p>
+
+  <div class="formula-box">
+    <div class="formula-label">Mifflin-St Jeor Formula</div>
+    For men: BMR = (10 × weight in kg) + (6.25 × height in cm) − (5 × age) + 5<br/>
+    For women: BMR = (10 × weight in kg) + (6.25 × height in cm) − (5 × age) − 161
+  </div>
+
+  <div class="example-box">
+    <h4>Example: 30-year-old woman, 145 lbs (66kg), 5'5" (165cm)</h4>
+    <p>BMR = (10 × 66) + (6.25 × 165) − (5 × 30) − 161<br/>
+    BMR = 660 + 1,031 − 150 − 161<br/>
+    <strong>BMR = 1,380 calories/day</strong></p>
+    <p style="margin-bottom:0;">This is how many calories she'd burn lying in bed all day doing absolutely nothing.</p>
+  </div>
+
+  <h3>Step 2: Multiply by your activity level</h3>
+
+  <p>Nobody lies in bed all day. Your TDEE accounts for how much you actually move:</p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Activity Level</th>
+        <th>Description</th>
+        <th>Multiplier</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Sedentary</td><td>Desk job, little to no exercise</td><td>× 1.2</td></tr>
+      <tr><td>Lightly active</td><td>Exercise 1–3 days/week</td><td>× 1.375</td></tr>
+      <tr><td>Moderately active</td><td>Exercise 3–5 days/week</td><td>× 1.55</td></tr>
+      <tr><td>Very active</td><td>Hard exercise 6–7 days/week</td><td>× 1.725</td></tr>
+      <tr><td>Athlete</td><td>Physical job or 2× daily training</td><td>× 1.9</td></tr>
+    </tbody>
+  </table>
+
+  <div class="example-box">
+    <h4>Continuing our example (moderately active):</h4>
+    <p>TDEE = 1,380 × 1.55 = <strong>2,139 calories/day</strong></p>
+    <p style="margin-bottom:0;">This is what she needs to eat to maintain her current weight.</p>
+  </div>
+
+  <div class="cta-box">
+    <h3>Skip the math — get your number instantly</h3>
+    <p>Fuel calculates your exact calorie target in seconds based on your height, weight, age, activity level, and goal. No spreadsheet required.</p>
+    <a href="/#demo">Calculate my calories free</a>
+    <p class="cta-note">No account needed. Takes 30 seconds.</p>
+  </div>
+
+  <h2 id="deficit">What Calorie Deficit Should You Aim For?</h2>
+
+  <p>Once you know your TDEE, creating a deficit is simple. But how big should that deficit be?</p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Goal</th>
+        <th>Daily Deficit</th>
+        <th>Expected Loss</th>
+        <th>Best For</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Aggressive cut</td><td>−700 kcal</td><td>~1.5 lbs/week</td><td>Short-term, event prep</td></tr>
+      <tr><td>Standard cut</td><td>−500 kcal</td><td>~1 lb/week</td><td>Most people</td></tr>
+      <tr><td>Slow cut</td><td>−250 kcal</td><td>~0.5 lbs/week</td><td>Athletes, muscle preservation</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <p><strong>Our recommendation for most people:</strong> A 500 calorie deficit. It produces about 1 pound of fat loss per week — fast enough to see results, slow enough to preserve muscle and feel good.</p>
+  </div>
+
+  <div class="example-box">
+    <h4>Final answer for our example:</h4>
+    <p>TDEE: 2,139 − 500 calorie deficit = <strong>1,639 calories/day to lose ~1 lb/week</strong></p>
+    <p style="margin-bottom:0;">That's her specific number. Not a generic "1,200 calories" — her number, for her body.</p>
+  </div>
+
+  <p>A word of caution: don't go below 1,200 calories for women or 1,500 for men without medical supervision. Extreme restriction causes muscle loss, hormonal disruption, and almost always leads to rebound weight gain.</p>
+
+  <h2 id="activity">How Activity Level Changes Everything</h2>
+
+  <p>This is the part most people get wrong. Activity level has an enormous impact on your calorie needs — far more than most people realize.</p>
+
+  <p>Take a 35-year-old man, 180 lbs, 5'10". Here's how his daily calorie needs change based purely on activity:</p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Activity Level</th>
+        <th>TDEE</th>
+        <th>Calories to Lose 1 lb/week</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Sedentary</td><td>1,980</td><td>1,480</td></tr>
+      <tr><td>Lightly active</td><td>2,273</td><td>1,773</td></tr>
+      <tr><td>Moderately active</td><td>2,565</td><td>2,065</td></tr>
+      <tr><td>Very active</td><td>2,858</td><td>2,358</td></tr>
+    </tbody>
+  </table>
+
+  <p>That's a difference of nearly 900 calories between sedentary and very active. This is why generic advice like "eat 1,500 calories to lose weight" is useless — and often counterproductive. An active person eating 1,500 calories is starving themselves. A sedentary person might not be in a deficit at all.</p>
+
+  <h2 id="macros">What About Protein, Carbs, and Fat?</h2>
+
+  <p>Once you know your calorie target, macronutrients determine what that deficit does to your body. Specifically, protein is the difference between losing fat and losing muscle.</p>
+
+  <p>Here's what the research says for someone in a calorie deficit:</p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Macro</th>
+        <th>Target</th>
+        <th>Why</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Protein</td><td>35–38% of calories</td><td>Preserves lean muscle during deficit</td></tr>
+      <tr><td>Carbs</td><td>32–35% of calories</td><td>Fuels workouts and brain function</td></tr>
+      <tr><td>Fat</td><td>28–30% of calories</td><td>Hormones, satiety, nutrient absorption</td></tr>
+    </tbody>
+  </table>
+
+  <p>For our example (1,639 calories, cutting goal):</p>
+  <ul>
+    <li><strong>Protein:</strong> ~143g (35% of 1,639 ÷ 4)</li>
+    <li><strong>Carbs:</strong> ~143g (35% of 1,639 ÷ 4)</li>
+    <li><strong>Fat:</strong> ~54g (30% of 1,639 ÷ 9)</li>
+  </ul>
+
+  <p>Protein is the most important to get right. Studies consistently show that higher protein intake during a calorie deficit results in significantly more fat loss and significantly less muscle loss compared to lower protein diets.</p>
+
+  <h2 id="practical">How to Actually Hit Your Calorie Target</h2>
+
+  <p>Knowing your number is step one. Actually eating to that number without losing your mind is step two. Here's what works:</p>
+
+  <h3>1. Plan your meals in advance</h3>
+  <p>Willpower is a terrible strategy. People who succeed at weight loss don't have more discipline — they have less decisions to make. If you know what you're eating for lunch before you're hungry, you make a completely different choice than if you're starving and staring at a menu.</p>
+
+  <h3>2. Build meals around protein first</h3>
+  <p>Protein is the most filling macronutrient per calorie. Building meals around a protein source (chicken, fish, eggs, Greek yogurt, legumes) and filling in with vegetables and complex carbs naturally keeps you in your calorie range without feeling hungry.</p>
+
+  <h3>3. Don't try to be perfect every day</h3>
+  <p>What matters is your weekly average, not your daily number. If you eat 300 calories over on Saturday, eat 100 under for three days and you're back on track. Perfection leads to guilt which leads to quitting.</p>
+
+  <h3>4. Use a meal plan, not a food diary</h3>
+  <p>Most people fail at calorie tracking because it requires logging every single thing they eat — every bite, every sauce, every handful of nuts. It's tedious, stressful, and unsustainable. A meal plan flips this around: you decide what you're eating at the start of the week and just follow it. Much easier.</p>
+
+  <div class="cta-box">
+    <h3>Get a meal plan built for your exact calories</h3>
+    <p>Fuel builds a full week of meals tailored to your calorie and macro targets. No logging, no tracking — just a plan to follow. Free to start.</p>
+    <a href="/fuel_pricing">Get my free meal plan</a>
+    <p class="cta-note">Includes AI meal generator, weekly planner, and macro targets.</p>
+  </div>
+
+  <h2 id="mistakes">The 3 Most Common Mistakes</h2>
+
+  <h3>1. Eating too little</h3>
+  <p>The most counterintuitive mistake. When you eat too little, your body slows its metabolism, burns muscle for fuel, and produces hunger hormones that make you miserable. Most people who "can't lose weight" are actually eating too little, losing muscle, and wonder why they feel terrible and aren't seeing results. Stick to a 500 calorie deficit maximum.</p>
+
+  <h3>2. Overestimating activity level</h3>
+  <p>Most people who go to the gym 3 times a week and have a desk job are "lightly active," not "moderately active." Overestimating your activity level means overestimating your TDEE, which means your deficit is smaller than you think. Be honest with yourself here — it's the most common error in calorie calculations.</p>
+
+  <h3>3. Not recalculating as you lose weight</h3>
+  <p>As you lose weight, your BMR decreases because you're carrying less mass. A 500 calorie deficit at 200 lbs is a different number than at 175 lbs. Recalculate every 4–6 weeks or whenever you've lost 10+ pounds to make sure you're still in the right range.</p>
+
+  <hr />
+
+  <h2>The Bottom Line</h2>
+
+  <p>To lose weight, you need to eat less than you burn. Your specific number depends on your height, weight, age, sex, and activity level — not a generic guideline.</p>
+
+  <p>For most people, the formula looks like this:</p>
+  <ol>
+    <li>Calculate your BMR using Mifflin-St Jeor</li>
+    <li>Multiply by your activity level to get your TDEE</li>
+    <li>Subtract 500 calories to lose ~1 lb per week</li>
+    <li>Hit 35%+ protein to preserve muscle</li>
+    <li>Follow a meal plan instead of logging food</li>
+  </ol>
+
+  <p>The math is simple. The hard part is finding a sustainable way to actually eat to those targets without obsessing over every meal. That's exactly what Fuel is built for.</p>
+
+  <div class="cta-box">
+    <h3>Find your number in 30 seconds</h3>
+    <p>Enter your details and Fuel calculates your exact daily calorie target, macro breakdown, and builds you a full meal plan. Free, no account required.</p>
+    <a href="/#demo">Calculate my calories</a>
+    <p class="cta-note">Used by thousands of people to hit their weight loss goals.</p>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-logo">Fu<span>e</span>l</div>
+  <div style="font-size:11px; color:#2a2a2a;">© 2026 Fuel. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="/">Home</a>
+  </div>
+</footer>
+
+</body>
+</html>
