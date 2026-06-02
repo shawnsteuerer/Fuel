@@ -14,11 +14,18 @@
 <script type="text/babel">
 const { useState, useEffect } = React;
 
+// Simple localStorage storage - stores raw strings
 async function storageGet(key) {
-  try { const v = localStorage.getItem(key); return v ? { value: v } : null; } catch { return null; }
+  try {
+    const v = localStorage.getItem(key);
+    return v ? { value: v } : null;
+  } catch { return null; }
 }
 async function storageSet(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+  try {
+    // value is already a JSON string here
+    localStorage.setItem(key, value);
+  } catch {}
 }
 
 
@@ -346,8 +353,12 @@ function App() {
     async function load() {
       const savedLog = await storageGet("fuel_diary_log");
       const savedTargets = await storageGet("fuel_diary_targets");
-      if(savedLog) setLog(savedLog);
-      if(savedTargets) setTargets(savedTargets);
+      if(savedLog) {
+        try { setLog(JSON.parse(savedLog.value)); } catch {}
+      }
+      if(savedTargets) {
+        try { setTargets(JSON.parse(savedTargets.value)); } catch {}
+      }
       setLoadingStorage(false);
     }
     load();
@@ -355,11 +366,11 @@ function App() {
 
   // Save log to storage whenever it changes
   useEffect(() => {
-    if(!loadingStorage) storageSet("fuel_diary_log", log);
+    if(!loadingStorage) storageSet("fuel_diary_log", JSON.stringify(log));
   }, [log, loadingStorage]);
 
   useEffect(() => {
-    if(!loadingStorage) storageSet("fuel_diary_targets", targets);
+    if(!loadingStorage) storageSet("fuel_diary_targets", JSON.stringify(targets));
   }, [targets, loadingStorage]);
 
   // Current date
