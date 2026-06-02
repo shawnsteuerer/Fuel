@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fuel Diary</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>body{margin:0}</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+async function storageGet(key) {
+  try { const v = localStorage.getItem(key); return v ? { value: v } : null; } catch { return null; }
+}
+async function storageSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const MEAL_SLOTS = ["Breakfast", "Morning Snack", "Lunch", "Afternoon Snack", "Dinner", "Snacks"];
+const MEAL_ICONS = { "Breakfast":"🥚", "Morning Snack":"🍎", "Lunch":"🥗", "Afternoon Snack":"🥜", "Dinner":"🍽", "Snacks":"🍫" };
+
+const MICRO_KEYS = ["vitD","calcium","iron","vitC","potassium","magnesium","zinc","b12","folate","omega3"];
+const MICRO_META = {
+  vitD:      { label:"Vitamin D",   unit:"IU",  daily:600,  icon:"☀️" },
+  calcium:   { label:"Calcium",     unit:"mg",  daily:1000, icon:"🦴" },
+  iron:      { label:"Iron",        unit:"mg",  daily:8,    icon:"🩸" },
+  vitC:      { label:"Vitamin C",   unit:"mg",  daily:90,   icon:"🍊" },
+  potassium: { label:"Potassium",   unit:"mg",  daily:3400, icon:"🍌" },
+  magnesium: { label:"Magnesium",   unit:"mg",  daily:400,  icon:"💪" },
+  zinc:      { label:"Zinc",        unit:"mg",  daily:11,   icon:"🛡️" },
+  b12:       { label:"B12",         unit:"mcg", daily:2.4,  icon:"⚡" },
+  folate:    { label:"Folate",      unit:"mcg", daily:400,  icon:"🌿" },
+  omega3:    { label:"Omega-3",     unit:"g",   daily:1.6,  icon:"🐟" },
+};
+
+// Approximate micro content per 100kcal for common food categories
+function estimateMicros(foodName, kcal) {
+  const name = foodName.toLowerCase();
+  const scale = kcal / 100;
+  let m = { vitD:0, calcium:0, iron:0, vitC:0, potassium:0, magnesium:0, zinc:0, b12:0, folate:0, omega3:0 };
+  if (name.includes("egg")) { m = { vitD:44*scale, calcium:28*scale, iron:1.75*scale, vitC:0, potassium:126*scale, magnesium:12*scale, zinc:1.3*scale, b12:0.89*scale, folate:47*scale, omega3:0.1*scale }; }
+  else if (name.includes("salmon") || name.includes("fish")) { m = { vitD:570*scale, calcium:15*scale, iron:0.8*scale, vitC:0, potassium:490*scale, magnesium:37*scale, zinc:0.9*scale, b12:3.2*scale, folate:25*scale, omega3:2.2*scale }; }
+  else if (name.includes("chicken") || name.includes("turkey")) { m = { vitD:7*scale, calcium:15*scale, iron:1.3*scale, vitC:0, potassium:340*scale, magnesium:30*scale, zinc:2.5*scale, b12:0.5*scale, folate:8*scale, omega3:0.1*scale }; }
+  else if (name.includes("beef") || name.includes("steak") || name.includes("burger")) { m = { vitD:5*scale, calcium:20*scale, iron:3.0*scale, vitC:0, potassium:320*scale, magnesium:25*scale, zinc:5.5*scale, b12:2.8*scale, folate:10*scale, omega3:0.15*scale }; }
+  else if (name.includes("yogurt") || name.includes("dairy") || name.includes("milk")) { m = { vitD:50*scale, calcium:200*scale, iron:0.2*scale, vitC:1*scale, potassium:240*scale, magnesium:20*scale, zinc:1.0*scale, b12:1.0*scale, folate:15*scale, omega3:0.05*scale }; }
+  else if (name.includes("spinach") || name.includes("kale") || name.includes("broccoli")) { m = { vitD:0, calcium:100*scale, iron:3.5*scale, vitC:55*scale, potassium:580*scale, magnesium:80*scale, zinc:0.8*scale, b12:0, folate:190*scale, omega3:0.1*scale }; }
+  else if (name.includes("sweet potato") || name.includes("potato")) { m = { vitD:0, calcium:38*scale, iron:0.7*scale, vitC:20*scale, potassium:540*scale, magnesium:28*scale, zinc:0.4*scale, b12:0, folate:23*scale, omega3:0.05*scale }; }
+  else if (name.includes("avocado")) { m = { vitD:0, calcium:18*scale, iron:0.8*scale, vitC:12*scale, potassium:690*scale, magnesium:36*scale, zinc:0.7*scale, b12:0, folate:90*scale, omega3:0.2*scale }; }
+  else if (name.includes("rice") || name.includes("oat") || name.includes("grain")) { m = { vitD:0, calcium:20*scale, iron:1.2*scale, vitC:0, potassium:110*scale, magnesium:35*scale, zinc:1.1*scale, b12:0, folate:9*scale, omega3:0.05*scale }; }
+  else if (name.includes("almond") || name.includes("walnut") || name.includes("nut") || name.includes("seed")) { m = { vitD:0, calcium:80*scale, iron:1.5*scale, vitC:0, potassium:260*scale, magnesium:75*scale, zinc:1.5*scale, b12:0, folate:25*scale, omega3:0.5*scale }; }
+  else if (name.includes("banana") || name.includes("berry") || name.includes("fruit")) { m = { vitD:0, calcium:12*scale, iron:0.4*scale, vitC:20*scale, potassium:380*scale, magnesium:20*scale, zinc:0.2*scale, b12:0, folate:20*scale, omega3:0.05*scale }; }
+  else { m = { vitD:5*scale, calcium:30*scale, iron:0.8*scale, vitC:5*scale, potassium:150*scale, magnesium:18*scale, zinc:0.5*scale, b12:0.2*scale, folate:15*scale, omega3:0.05*scale }; }
+  // Round all values
+  Object.keys(m).forEach(k => { m[k] = Math.round(m[k] * 10) / 10; });
+  return m;
+}
+
+function addMicros(a, b) {
+  const r = {};
+  MICRO_KEYS.forEach(k => { r[k] = Math.round(((a[k]||0) + (b[k]||0)) * 10) / 10; });
+  return r;
+}
+
+function zeroMicros() { return Object.fromEntries(MICRO_KEYS.map(k=>[k,0])); }
+
+function microPct(m) {
+  const r = {};
+  MICRO_KEYS.forEach(k => { r[k] = Math.min(Math.round((m[k]||0) / MICRO_META[k].daily * 100), 999); });
+  return r;
+}
+
+function todayKey() { return new Date().toISOString().split("T")[0]; }
+
+async function searchUSDA(query) {
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: `Return ONLY a JSON object. No explanation, no markdown, no text before or after.
+
+I need the EXACT nutrition label data for: "${query}"
+
+Rules:
+- Values are PER SERVING shown on the nutrition facts label
+- NOT per 100g
+- NOT estimated or calculated
+- Copy exactly from the real product label
+- If you are not certain of the exact label values, still give your best known data from the product
+
+Bread Alone San Francisco Sourdough example:
+- 1 slice (39g), 110 cal, 4g protein, 22g carbs, 0g fat
+
+{"foods":[
+  {"name":"Exact product name from label","brand":"Brand","serving":"1 slice (39g)","kcal":110,"protein":4,"carbs":22,"fat":0},
+  {"name":"Similar product 2","brand":"Brand","serving":"serving size","kcal":0,"protein":0,"carbs":0,"fat":0}
+]}`
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+    const jsonStr = text.replace(/```json|```/g, "").trim();
+    const start = jsonStr.indexOf("{");
+    const end = jsonStr.lastIndexOf("}");
+    if (start === -1 || end === -1) return [];
+    const parsed = JSON.parse(jsonStr.slice(start, end + 1));
+    return (parsed.foods || []).slice(0, 4);
+  } catch(e) {
+    console.error("Search error:", e);
+    return [];
+  }
+}
+
+async function callAI(prompt, onChunk) {
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, stream:true,
+      messages:[{ role:"user", content:prompt }] })
+  });
+  const reader = resp.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", full = "";
+  while(true) {
+    const { done, value } = await reader.read();
+    if(done) break;
+    buf += dec.decode(value, { stream:true });
+    const lines = buf.split("\n"); buf = lines.pop();
+    for(const line of lines) {
+      if(line.startsWith("data: ")) {
+        try { const d = JSON.parse(line.slice(6)); if(d.type==="content_block_delta"&&d.delta?.text){ full+=d.delta.text; onChunk(d.delta.text); } } catch{}
+      }
+    }
+  }
+  return full;
+}
+
+// ─── CSS ──────────────────────────────────────────────────────────────────────
+const S = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#f4f1ed;font-family:'Inter',sans-serif;font-weight:300;color:#1a1a1a;font-size:14px;-webkit-font-smoothing:antialiased}
+
+.app{min-height:100vh;background:#f4f1ed}
+.topbar{background:#fff;border-bottom:1px solid #e4dfd8;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.logo{font-family:'DM Serif Display',serif;font-size:20px;letter-spacing:-0.5px}
+.logo span{color:#c9a84c}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{padding:7px 14px;border-radius:8px;font-size:12px;color:#888;cursor:pointer;transition:all 0.15s;border:none;background:none;font-family:inherit;letter-spacing:0.3px}
+.nav-tab:hover{color:#1a1a1a;background:#f4f1ed}
+.nav-tab.on{background:#1a1a1a;color:#f4f1ed}
+
+.body{max-width:960px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start}
+@media(max-width:720px){.body{grid-template-columns:1fr;padding:14px}}
+
+/* Date strip */
+.date-strip{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.date-label{font-family:'DM Serif Display',serif;font-size:22px}
+.date-nav{display:flex;gap:6px}
+.date-btn{background:#fff;border:1px solid #e4dfd8;border-radius:8px;padding:6px 12px;font-size:12px;color:#777;cursor:pointer;transition:all 0.15s;font-family:inherit}
+.date-btn:hover{border-color:#c9a84c;color:#9a7030}
+.date-btn.today{background:#1a1a1a;color:#f4f1ed;border-color:#1a1a1a}
+
+/* Macro summary bar */
+.macro-summary{background:#fff;border:1px solid #e4dfd8;border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.macro-summary-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.macro-cal{font-family:'DM Serif Display',serif;font-size:36px;line-height:1}
+.macro-cal-target{font-size:12px;color:#aaa;margin-top:2px}
+.macro-bars{display:flex;flex-direction:column;gap:8px}
+.macro-bar-row{display:flex;align-items:center;gap:10px}
+.macro-bar-label{font-size:11px;color:#777;width:52px;flex-shrink:0}
+.macro-bar-bg{flex:1;background:#f0ece8;border-radius:3px;height:6px;overflow:hidden}
+.macro-bar-fill{height:100%;border-radius:3px;transition:width 0.4s ease}
+.macro-bar-val{font-size:11px;color:#aaa;width:60px;text-align:right;flex-shrink:0}
+
+/* Meal section */
+.meal-section{background:#fff;border:1px solid #e4dfd8;border-radius:14px;margin-bottom:8px;overflow:hidden}
+.meal-section-hdr{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-bottom:1px solid #f0ece8}
+.meal-section-hdr.open{border-bottom-color:#e4dfd8}
+.meal-section-left{display:flex;align-items:center;gap:10px}
+.meal-icon{font-size:18px}
+.meal-slot-name{font-size:13px;font-weight:500;color:#1a1a1a}
+.meal-slot-cal{font-size:11px;color:#bbb;margin-top:1px}
+.meal-section-right{display:flex;align-items:center;gap:8px}
+.add-food-btn{background:#f4f1ed;border:1px solid #e4dfd8;border-radius:7px;padding:5px 11px;font-size:11px;color:#777;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.add-food-btn:hover{background:#c9a84c;color:#fff;border-color:#c9a84c}
+.chevron{font-size:12px;color:#ccc;transition:transform 0.2s}
+.chevron.open{transform:rotate(180deg)}
+
+/* Food log entries */
+.food-entries{padding:8px 16px}
+.food-entry{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;margin-bottom:4px;transition:background 0.1s}
+.food-entry:hover{background:#faf9f7}
+.food-entry-icon{width:8px;height:8px;border-radius:50%;background:#c9a84c;flex-shrink:0}
+.food-entry-body{flex:1;min-width:0}
+.food-entry-name{font-size:12px;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.food-entry-brand{font-size:10px;color:#bbb;margin-top:1px}
+.food-entry-amount{font-size:11px;color:#aaa;white-space:nowrap;margin:0 8px}
+.food-entry-cal{font-family:'DM Serif Display',serif;font-size:14px;color:#777;white-space:nowrap}
+.food-entry-macros{font-size:10px;color:#bbb;margin-left:8px;white-space:nowrap}
+.del-btn{background:none;border:none;color:#ddd;cursor:pointer;font-size:14px;padding:0 2px;transition:color 0.15s;flex-shrink:0}
+.del-btn:hover{color:#c97a6e}
+
+/* Add food panel */
+.add-panel{padding:12px 16px;border-top:1px solid #f0ece8;background:#faf9f7}
+.add-panel-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin-bottom:8px}
+.search-row{display:flex;gap:7px;margin-bottom:8px}
+.search-input{flex:1;background:#fff;border:1.5px solid #e4dfd8;border-radius:8px;padding:9px 12px;font-size:13px;color:#1a1a1a;outline:none;font-family:inherit}
+.search-input:focus{border-color:#c9a84c}
+.search-btn{background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.search-btn:disabled{opacity:0.4;cursor:not-allowed}
+.results-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;margin-bottom:8px}
+.result-item{background:#fff;border:1px solid #e4dfd8;border-radius:8px;padding:10px 12px;cursor:pointer;transition:all 0.15s}
+.result-item:hover{border-color:#c9a84c;background:#fffdf5}
+.result-item.sel{border-color:#c9a84c;background:#fffdf5}
+.result-name{font-size:12px;color:#1a1a1a;margin-bottom:2px}
+.result-brand{font-size:10px;color:#bbb}
+.result-meta{font-size:10px;color:#aaa;margin-top:3px}
+.amount-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.amount-row label{font-size:11px;color:#777;white-space:nowrap}
+.amount-input{width:70px;background:#fff;border:1.5px solid #e4dfd8;border-radius:7px;padding:7px 9px;font-size:13px;text-align:center;outline:none;color:#1a1a1a;font-family:inherit}
+.amount-input:focus{border-color:#c9a84c}
+.unit-select{background:#fff;border:1.5px solid #e4dfd8;border-radius:7px;padding:7px 10px;font-size:12px;color:#555;outline:none;font-family:inherit;cursor:pointer}
+.log-btn{background:#c9a84c;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;white-space:nowrap}
+.log-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* Quick add manual */
+.manual-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.manual-input{background:#fff;border:1.5px solid #e4dfd8;border-radius:7px;padding:7px 10px;font-size:12px;color:#1a1a1a;outline:none;font-family:inherit}
+.manual-input:focus{border-color:#c9a84c}
+.manual-input.name{flex:2;min-width:120px}
+.manual-input.num{width:65px;text-align:center}
+.manual-add-btn{background:#1a1a1a;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap}
+
+/* RIGHT sidebar */
+.sidebar{display:flex;flex-direction:column;gap:12px}
+
+/* Progress ring */
+.ring-card{background:#fff;border:1px solid #e4dfd8;border-radius:14px;padding:18px;text-align:center}
+.ring-wrap{position:relative;width:90px;height:90px;margin:0 auto 10px}
+.ring-svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:#f0ece8;stroke-width:8}
+.ring-fg{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 0.6s ease}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.ring-pct{font-family:'DM Serif Display',serif;font-size:22px;line-height:1}
+.ring-lbl{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:#bbb;margin-top:1px}
+.ring-sub{font-size:11px;color:#aaa}
+
+/* Micro card */
+.micro-card{background:#fff;border:1px solid #e4dfd8;border-radius:14px;padding:16px}
+.card-title{font-family:'DM Serif Display',serif;font-size:16px;margin-bottom:3px}
+.card-sub{font-size:10px;color:#aaa;margin-bottom:12px;line-height:1.5}
+.micro-rows{display:flex;flex-direction:column;gap:9px}
+.mrow-hdr{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}
+.mrow-name{color:#555;display:flex;align-items:center;gap:4px}
+.mrow-val{color:#777;font-size:10px}
+.mrow-pct{font-weight:500;font-size:11px}
+.mrow-bg{background:#f0ece8;border-radius:3px;height:4px;overflow:hidden}
+.mrow-fill{height:100%;border-radius:3px;transition:width 0.5s ease}
+.mrow-tip{font-size:9px;color:#c9a84c;margin-top:2px}
+
+/* AI insights */
+.ai-card{background:#fff;border:1px solid #e4dfd8;border-radius:14px;padding:16px}
+.ai-stream{font-size:12px;color:#444;line-height:1.8;white-space:pre-wrap;margin-bottom:10px}
+.ai-btn{width:100%;background:#1a1a1a;color:#f4f1ed;border:none;border-radius:9px;padding:11px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;transition:opacity 0.15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.ai-btn:hover{opacity:0.85}
+.ai-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* Pattern card */
+.pattern-card{background:#fff;border:1px solid #e4dfd8;border-radius:14px;padding:16px}
+.pattern-food{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f4f1ed;font-size:12px}
+.pattern-food:last-child{border-bottom:none}
+.pattern-food-name{color:#1a1a1a;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pattern-food-count{font-size:10px;color:#bbb;margin-left:8px;white-space:nowrap}
+.pattern-food-bar{width:40px;height:4px;background:#f0ece8;border-radius:2px;overflow:hidden;margin-left:8px}
+.pattern-food-fill{height:100%;background:#c9a84c;border-radius:2px}
+
+/* Stats page */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat-tile{background:#fff;border:1px solid #e4dfd8;border-radius:12px;padding:14px;text-align:center}
+.stat-val{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;margin-bottom:3px}
+.stat-lbl{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#bbb}
+.stat-val.g{color:#4a7a5a}.stat-val.a{color:#c9a84c}.stat-val.r{color:#c97a6e}
+
+/* Utility */
+.sp{display:inline-block;width:10px;height:10px;border:1.5px solid #ddd;border-top-color:#c9a84c;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:28px 16px;color:#bbb;font-size:12px}
+.empty-icon{font-size:28px;margin-bottom:8px;opacity:0.4}
+.tag{font-size:9px;padding:2px 8px;border-radius:20px;display:inline-block;letter-spacing:0.5px}
+.tag-green{background:#e4f0e8;color:#3a6a4a}
+.tag-amber{background:#f0ead8;color:#9a7030}
+.tag-red{background:#f4e4e4;color:#8a3030}
+.section-divider{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#bbb;margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.section-divider::after{content:'';flex:1;height:1px;background:#e4dfd8}
+`;
+
+// ─── Main App ─────────────────────────────────────────────────────────────────
+function App() {
+  const [view, setView] = useState("diary"); // diary | insights | patterns
+  const [dateOffset, setDateOffset] = useState(0); // 0=today, -1=yesterday etc
+  const [log, setLog] = useState({}); // { "2026-01-01": { Breakfast: [{...}], ... } }
+  const [userProfile, setUserProfile] = useState(null); // targets
+  const [loadingStorage, setLoadingStorage] = useState(true);
+
+  // Search state per slot
+  const [openSlot, setOpenSlot] = useState(null);
+  const [searchQ, setSearchQ] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [selectedFood, setSelectedFood] = useState(null);
+  const [servings, setServings] = useState("1");
+  const [unit, setUnit] = useState("serving");
+
+  // Manual add
+  const [editingEntry, setEditingEntry] = useState(null); // {slot, idx}
+  const [editServings, setEditServings] = useState("1");
+  const [manualName, setManualName] = useState("");
+  const [manualCal, setManualCal] = useState("");
+  const [manualP, setManualP] = useState("");
+  const [manualC, setManualC] = useState("");
+  const [manualF, setManualF] = useState("");
+
+  // AI
+  const [aiText, setAiText] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiDone, setAiDone] = useState(false);
+
+  // Targets (simple defaults, user can set)
+  const [targets, setTargets] = useState({ cal:2500, protein:200, carbs:280, fat:65 });
+  const [showTargetEdit, setShowTargetEdit] = useState(false);
+
+  // Load from storage on mount
+  useEffect(() => {
+    async function load() {
+      const savedLog = await storageGet("fuel_diary_log");
+      const savedTargets = await storageGet("fuel_diary_targets");
+      if(savedLog) setLog(savedLog);
+      if(savedTargets) setTargets(savedTargets);
+      setLoadingStorage(false);
+    }
+    load();
+  }, []);
+
+  // Save log to storage whenever it changes
+  useEffect(() => {
+    if(!loadingStorage) storageSet("fuel_diary_log", log);
+  }, [log, loadingStorage]);
+
+  useEffect(() => {
+    if(!loadingStorage) storageSet("fuel_diary_targets", targets);
+  }, [targets, loadingStorage]);
+
+  // Current date
+  function getDate(offset) {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return d.toISOString().split("T")[0];
+  }
+  const currentDate = getDate(dateOffset);
+  const isToday = dateOffset === 0;
+
+  const dayLog = log[currentDate] || {};
+
+  function formatDate(offset) {
+    if(offset===0) return "Today";
+    if(offset===-1) return "Yesterday";
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return d.toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" });
+  }
+
+  // Calculate day totals
+  const dayEntries = Object.values(dayLog).flat();
+  const dayTotals = dayEntries.reduce((t,e)=>({
+    cal:t.cal+(e.cal||0), protein:t.protein+(e.protein||0), carbs:t.carbs+(e.carbs||0), fat:t.fat+(e.fat||0)
+  }), {cal:0,protein:0,carbs:0,fat:0});
+
+  const dayMicros = dayEntries.reduce((m,e)=>addMicros(m, e.micros||zeroMicros()), zeroMicros());
+  const microPcts = microPct(dayMicros);
+
+  function slotTotal(slot) {
+    return (dayLog[slot]||[]).reduce((t,e)=>({ cal:t.cal+(e.cal||0), protein:t.protein+(e.protein||0) }), {cal:0,protein:0});
+  }
+
+  // Add food entry
+  function addEntry(slot, entry) {
+    setLog(prev => {
+      const dayData = { ...(prev[currentDate]||{}) };
+      dayData[slot] = [...(dayData[slot]||[]), entry];
+      return { ...prev, [currentDate]: dayData };
+    });
+  }
+
+  function updateEntry(slot, idx, updates) {
+    setLog(prev => {
+      const dayData = { ...(prev[currentDate]||{}) };
+      const entries = [...(dayData[slot]||[])];
+      entries[idx] = { ...entries[idx], ...updates };
+      dayData[slot] = entries;
+      return { ...prev, [currentDate]: dayData };
+    });
+  }
+
+  function removeEntry(slot, idx) {
+    setLog(prev => {
+      const dayData = { ...(prev[currentDate]||{}) };
+      dayData[slot] = (dayData[slot]||[]).filter((_,i)=>i!==idx);
+      return { ...prev, [currentDate]: dayData };
+    });
+  }
+
+  async function doSearch(q) {
+    const query = q || searchQ;
+    if(!query.trim()) return;
+    setSearching(true); setSearchResults([]); setSelectedFood(null);
+    const results = await searchUSDA(query);
+    setSearchResults(results);
+    if(results.length === 0) {
+      setSearchResults([{ _empty: true, name: "No results found — try a different search or add manually below" }]);
+    }
+    setSearching(false);
+  }
+
+  function selectFood(food) {
+    setSelectedFood(food);
+    setServings("1");
+    setUnit("serving");
+  }
+
+  function logSelectedFood(slot) {
+    if(!selectedFood) return;
+    const qty = parseFloat(servings)||1;
+    const scale = unit==="100g" ? qty/100 : qty;
+    const entry = {
+      id: Date.now(),
+      name: selectedFood.name,
+      brand: selectedFood.brand||null,
+      amount: unit==="100g" ? `${qty}g` : `${qty} serving${qty!==1?"s":""}`,
+      cal: Math.round((selectedFood.kcal||0)*scale),
+      protein: Math.round((selectedFood.protein||0)*scale*10)/10,
+      carbs: Math.round((selectedFood.carbs||0)*scale*10)/10,
+      fat: Math.round((selectedFood.fat||0)*scale*10)/10,
+      micros: (() => { const m = estimateMicros(selectedFood.name, (selectedFood.kcal||0)*scale); return m; })(),
+    };
+    addEntry(slot, entry);
+    setSelectedFood(null); setSearchQ(""); setSearchResults([]); setServings("1");
+  }
+
+  function logManual(slot) {
+    if(!manualName||!manualCal) return;
+    const entry = {
+      id: Date.now(),
+      name: manualName,
+      brand: null,
+      amount: "1 serving",
+      cal: parseInt(manualCal)||0,
+      protein: parseFloat(manualP)||0,
+      carbs: parseFloat(manualC)||0,
+      fat: parseFloat(manualF)||0,
+      micros: estimateMicros(manualName, parseInt(manualCal)||0),
+    };
+    addEntry(slot, entry);
+    setManualName(""); setManualCal(""); setManualP(""); setManualC(""); setManualF("");
+  }
+
+  // Pattern analysis: most logged foods
+  function getPatterns() {
+    const foodCounts = {};
+    Object.values(log).forEach(dayData => {
+      Object.values(dayData).flat().forEach(entry => {
+        const key = entry.brand ? `${entry.brand} ${entry.name}` : entry.name;
+        const short = key.length>40 ? key.slice(0,40)+"…" : key;
+        foodCounts[short] = (foodCounts[short]||0) + 1;
+      });
+    });
+    return Object.entries(foodCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  }
+
+  // Average micros over logged days
+  function getAvgMicros() {
+    const days = Object.keys(log).filter(d => Object.values(log[d]).flat().length>0);
+    if(!days.length) return zeroMicros();
+    const totals = days.reduce((t, d) => {
+      const entries = Object.values(log[d]).flat();
+      const dayM = entries.reduce((m,e)=>addMicros(m,e.micros||zeroMicros()), zeroMicros());
+      return addMicros(t, dayM);
+    }, zeroMicros());
+    const avg = {};
+    MICRO_KEYS.forEach(k=>{ avg[k]=Math.round(totals[k]/days.length*10)/10; });
+    return avg;
+  }
+
+  // AI insights based on history
+  async function generateInsights() {
+    const days = Object.keys(log).filter(d=>Object.values(log[d]).flat().length>0);
+    if(days.length<2) { setAiText("Log at least 2 days of food to get personalized insights."); return; }
+    
+    setAiLoading(true); setAiText(""); setAiDone(false);
+
+    const patterns = getPatterns();
+    const avgMicros = getAvgMicros();
+    const avgMicroPcts = microPct(avgMicros);
+    const lowMicros = MICRO_KEYS.filter(k=>avgMicroPcts[k]<60);
+    const highMicros = MICRO_KEYS.filter(k=>avgMicroPcts[k]>120);
+
+    // Recent day summary
+    const recentDays = days.slice(-7).map(d => {
+      const entries = Object.values(log[d]).flat();
+      const tot = entries.reduce((t,e)=>({cal:t.cal+(e.cal||0),p:t.p+(e.protein||0)}),{cal:0,p:0});
+      return `${d}: ${tot.cal} kcal, ${tot.p}g protein`;
+    }).join("\n");
+
+    const foodList = patterns.map(([name,count]) => "- " + name + " (logged " + count + "x)").join("\n");
+    const microList = MICRO_KEYS.map(k => "- " + MICRO_META[k].label + ": " + avgMicroPcts[k] + "% of daily target").join("\n");
+    const prompt = "You are a precision sports dietitian analyzing a person real food diary data.\n\n" +
+      "Their most frequently eaten foods:\n" + foodList + "\n\n" +
+      "Average daily micro coverage over " + days.length + " days:\n" + microList + "\n\n" +
+      "Recent days:\n" + recentDays + "\n\n" +
+      "Daily targets: " + targets.cal + " kcal | " + targets.protein + "g protein | " + targets.carbs + "g carbs | " + targets.fat + "g fat\n\n" +
+      "Provide personalized insights:\n\n" +
+      "**What you are doing well**\n[2-3 specific observations]\n\n" +
+      "**Nutrient gaps to address**\n[Specific gaps with foods from their rotation to fix them]\n\n" +
+      "**This week recommendation**\n[One actionable recommendation using foods they already eat]\n\n" +
+      "Be direct. Reference their actual foods by name. No generic advice. Max 200 words.";
+
+    await callAI(prompt, chunk=>setAiText(p=>p+chunk));
+    setAiLoading(false); setAiDone(true);
+  }
+
+  // Stats
+  function getStats() {
+    const days = Object.keys(log).filter(d=>Object.values(log[d]).flat().length>0);
+    if(!days.length) return null;
+    const avgCal = Math.round(days.reduce((s,d)=>{ const tot=Object.values(log[d]).flat().reduce((t,e)=>t+(e.cal||0),0); return s+tot; },0)/days.length);
+    const avgProt = Math.round(days.reduce((s,d)=>{ const tot=Object.values(log[d]).flat().reduce((t,e)=>t+(e.protein||0),0); return s+tot; },0)/days.length*10)/10;
+    return { days:days.length, avgCal, avgProt };
+  }
+
+  const stats = getStats();
+  const avgMicros = getAvgMicros();
+  const avgMicroPcts = microPct(avgMicros);
+  const patterns = getPatterns();
+
+  // Render
+  if(loadingStorage) return (
+    <>
+      <style>{S}</style>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",color:"#aaa",fontSize:13}}>
+        <span className="sp" style={{marginRight:8}}/> Loading your diary…
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      <style>{S}</style>
+      <div className="app">
+        {/* Top bar */}
+        <div className="topbar">
+          <div className="logo">Fu<span>e</span>l <span style={{fontSize:11,color:"#bbb",fontFamily:"Inter",fontWeight:300,letterSpacing:1}}>DIARY</span></div>
+          <div className="nav-tabs">
+            <button className={`nav-tab ${view==="diary"?"on":""}`} onClick={()=>setView("diary")}>Diary</button>
+            <button className={`nav-tab ${view==="insights"?"on":""}`} onClick={()=>setView("insights")}>Insights</button>
+            <button className={`nav-tab ${view==="patterns"?"on":""}`} onClick={()=>setView("patterns")}>Patterns</button>
+          </div>
+        </div>
+
+        {/* ── DIARY VIEW ── */}
+        {view==="diary" && (
+          <div className="body">
+            <div>
+              {/* Date navigation */}
+              <div className="date-strip">
+                <div className="date-label">{formatDate(dateOffset)}</div>
+                <div className="date-nav">
+                  <button className="date-btn" onClick={()=>setDateOffset(o=>o-1)}>← Prev</button>
+                  {!isToday && <button className="date-btn today" onClick={()=>setDateOffset(0)}>Today</button>}
+                  {!isToday && <button className="date-btn" onClick={()=>setDateOffset(o=>Math.min(o+1,0))}>Next →</button>}
+                </div>
+              </div>
+
+              {/* Macro summary */}
+              <div className="macro-summary">
+                <div className="macro-summary-hdr">
+                  <div>
+                    <div className="macro-cal">{dayTotals.cal.toLocaleString()} <span style={{fontSize:16,color:"#bbb",fontFamily:"Inter",fontWeight:300}}>kcal</span></div>
+                    <div className="macro-cal-target">of {targets.cal.toLocaleString()} target · {Math.round(dayTotals.cal/targets.cal*100)}%</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontSize:11,color:"#aaa",marginBottom:4}}>{dayEntries.length} items logged</div>
+                    <button onClick={()=>setShowTargetEdit(!showTargetEdit)} style={{background:"none",border:"1px solid #e4dfd8",borderRadius:6,padding:"4px 10px",fontSize:10,color:"#aaa",cursor:"pointer",fontFamily:"inherit"}}>
+                      {showTargetEdit?"Done":"Edit targets"}
+                    </button>
+                  </div>
+                </div>
+
+                {showTargetEdit && (
+                  <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+                    {[["cal","Calories","kcal"],["protein","Protein","g"],["carbs","Carbs","g"],["fat","Fat","g"]].map(([k,label,u])=>(
+                      <div key={k} style={{display:"flex",flexDirection:"column",gap:3}}>
+                        <label style={{fontSize:9,letterSpacing:1,textTransform:"uppercase",color:"#aaa"}}>{label}</label>
+                        <input type="number" value={targets[k]} onChange={e=>setTargets(p=>({...p,[k]:parseInt(e.target.value)||0}))}
+                          style={{width:70,background:"#fff",border:"1.5px solid #e4dfd8",borderRadius:7,padding:"6px 8px",fontSize:13,textAlign:"center",outline:"none",fontFamily:"inherit"}} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="macro-bars">
+                  {[
+                    ["Calories", dayTotals.cal, targets.cal, "#1a1a1a"],
+                    ["Protein",  dayTotals.protein, targets.protein, "#c9a84c"],
+                    ["Carbs",    dayTotals.carbs, targets.carbs, "#6e9a84"],
+                    ["Fat",      dayTotals.fat, targets.fat, "#9a6e9a"],
+                  ].map(([label,val,tgt,color])=>(
+                    <div key={label} className="macro-bar-row">
+                      <div className="macro-bar-label">{label}</div>
+                      <div className="macro-bar-bg">
+                        <div className="macro-bar-fill" style={{width:`${Math.min(val/tgt*100,100)}%`,background:color}} />
+                      </div>
+                      <div className="macro-bar-val">{Math.round(val*10)/10}{label==="Calories"?" kcal":"g"} / {tgt}{label==="Calories"?"":""}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Meal slots */}
+              {MEAL_SLOTS.map(slot => {
+                const entries = dayLog[slot]||[];
+                const tot = slotTotal(slot);
+                const isOpen = openSlot===slot;
+
+                return (
+                  <div key={slot} className="meal-section">
+                    <div className="meal-section-hdr" onClick={()=>setOpenSlot(isOpen?null:slot)}>
+                      <div className="meal-section-left">
+                        <div className="meal-icon">{MEAL_ICONS[slot]||"🍽"}</div>
+                        <div>
+                          <div className="meal-slot-name">{slot}</div>
+                          <div className="meal-slot-cal">{tot.cal>0?`${tot.cal} kcal · ${tot.protein}g protein`:"No foods logged"}</div>
+                        </div>
+                      </div>
+                      <div className="meal-section-right">
+                        <button className="add-food-btn" onClick={e=>{e.stopPropagation();setOpenSlot(slot);setSearchQ("");setSearchResults([]);setSelectedFood(null);}}>
+                          + Add
+                        </button>
+                        <div className={`chevron ${isOpen?"open":""}`}>▾</div>
+                      </div>
+                    </div>
+
+                    {entries.length>0 && (
+                      <div className="food-entries">
+                        {entries.map((entry,ei)=>{
+                          const isEditing = editingEntry?.slot===slot && editingEntry?.idx===ei;
+                          return (
+                            <div key={ei}>
+                              <div className="food-entry">
+                                <div className="food-entry-icon" />
+                                <div className="food-entry-body">
+                                  <div className="food-entry-name">{entry.name}</div>
+                                  {entry.brand && <div className="food-entry-brand">{entry.brand}</div>}
+                                </div>
+                                <div className="food-entry-amount">{entry.amount}</div>
+                                <div className="food-entry-cal">{entry.cal}</div>
+                                <div className="food-entry-macros">{entry.protein}P · {entry.carbs}C · {entry.fat}F</div>
+                                <button
+                                  onClick={()=>{ setEditingEntry(isEditing?null:{slot,idx:ei}); setEditServings("1"); }}
+                                  style={{background:"none",border:"1px solid #e4dfd8",borderRadius:5,color:"#aaa",cursor:"pointer",fontSize:10,padding:"2px 7px",marginLeft:4,fontFamily:"inherit",transition:"all 0.15s"}}
+                                  onMouseOver={e=>{e.currentTarget.style.borderColor="#c9a84c";e.currentTarget.style.color="#9a7030";}}
+                                  onMouseOut={e=>{e.currentTarget.style.borderColor="#e4dfd8";e.currentTarget.style.color="#aaa";}}
+                                >✏</button>
+                                <button className="del-btn" onClick={()=>{ removeEntry(slot,ei); if(isEditing) setEditingEntry(null); }}>×</button>
+                              </div>
+
+                              {isEditing && (
+                                <div style={{margin:"4px 10px 8px",padding:"12px",background:"#fffdf5",border:"1px solid #f0e8cc",borderRadius:10}}>
+                                  <div style={{fontSize:9,letterSpacing:2,textTransform:"uppercase",color:"#9a7030",marginBottom:10}}>Edit — {entry.name}</div>
+                                  <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
+                                    <div>
+                                      <div style={{fontSize:9,color:"#aaa",marginBottom:3,letterSpacing:1}}>CALORIES</div>
+                                      <input type="number" value={entry.cal}
+                                        onChange={e=>updateEntry(slot,ei,{cal:parseInt(e.target.value)||0})}
+                                        style={{width:70,background:"#fff",border:"1.5px solid #e4dfd8",borderRadius:7,padding:"6px 8px",fontSize:13,textAlign:"center",outline:"none",fontFamily:"inherit"}} />
+                                    </div>
+                                    <div>
+                                      <div style={{fontSize:9,color:"#aaa",marginBottom:3,letterSpacing:1}}>PROTEIN (g)</div>
+                                      <input type="number" step="0.1" value={entry.protein}
+                                        onChange={e=>updateEntry(slot,ei,{protein:parseFloat(e.target.value)||0})}
+                                        style={{width:70,background:"#fff",border:"1.5px solid #e4dfd8",borderRadius:7,padding:"6px 8px",fontSize:13,textAlign:"center",outline:"none",fontFamily:"inherit"}} />
+                                    </div>
+                                    <div>
+                                      <div style={{fontSize:9,color:"#aaa",marginBottom:3,letterSpacing:1}}>CARBS (g)</div>
+                                      <input type="number" step="0.1" value={entry.carbs}
+                                        onChange={e=>updateEntry(slot,ei,{carbs:parseFloat(e.target.value)||0})}
+                                        style={{width:70,background:"#fff",border:"1.5px solid #e4dfd8",borderRadius:7,padding:"6px 8px",fontSize:13,textAlign:"center",outline:"none",fontFamily:"inherit"}} />
+                                    </div>
+                                    <div>
+                                      <div style={{fontSize:9,color:"#aaa",marginBottom:3,letterSpacing:1}}>FAT (g)</div>
+                                      <input type="number" step="0.1" value={entry.fat}
+                                        onChange={e=>updateEntry(slot,ei,{fat:parseFloat(e.target.value)||0})}
+                                        style={{width:70,background:"#fff",border:"1.5px solid #e4dfd8",borderRadius:7,padding:"6px 8px",fontSize:13,textAlign:"center",outline:"none",fontFamily:"inherit"}} />
+                                    </div>
+                                    <div>
+                                      <div style={{fontSize:9,color:"#aaa",marginBottom:3,letterSpacing:1}}>AMOUNT</div>
+                                      <input type="text" value={entry.amount}
+                                        onChange={e=>updateEntry(slot,ei,{amount:e.target.value})}
+                                        style={{width:100,background:"#fff",border:"1.5px solid #e4dfd8",borderRadius:7,padding:"6px 8px",fontSize:12,outline:"none",fontFamily:"inherit"}} />
+                                    </div>
+                                  </div>
+                                  <button onClick={()=>setEditingEntry(null)}
+                                    style={{background:"#1a1a1a",color:"#fff",border:"none",borderRadius:8,padding:"7px 16px",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>
+                                    Done editing
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {isOpen && (
+                      <div className="add-panel">
+                        <div className="add-panel-title">Search USDA database</div>
+                        <div className="search-row">
+                          <input className="search-input" type="text" placeholder="Search any food or brand…"
+                            value={searchQ} onChange={e=>setSearchQ(e.target.value)}
+                            onKeyDown={e=>{ if(e.key==="Enter") doSearch(e.target.value); }} />
+                          <button className="search-btn" onClick={()=>doSearch(searchQ)} disabled={searching}>
+                            {searching?<span className="sp"/>:"Search"}
+                          </button>
+                        </div>
+
+                        {searchResults.length>0 && (
+                          <div className="results-list">
+                            {searchResults.map((food,fi)=>(
+                              food._empty ? (
+                                <div key={fi} style={{fontSize:12,color:"#bbb",padding:"10px 12px",textAlign:"center"}}>{food.name}</div>
+                              ) : (
+                                <div key={fi} className={`result-item ${selectedFood===food?"sel":""}`} onClick={()=>selectFood(food)}>
+                                  <div className="result-name">{food.name}</div>
+                                  {food.brand && <div className="result-brand">{food.brand}</div>}
+                                  <div className="result-meta">{food.kcal||0} kcal · {food.protein||0}g P · {food.carbs||0}g C · {food.fat||0}g F · per {food.serving}</div>
+                                </div>
+                              )
+                            ))}
+                          </div>
+                        )}
+
+                        {selectedFood && (() => {
+                          const qty = parseFloat(servings) || 1;
+                          const scale = unit === "100g" ? qty / 100 : qty;
+                          const scaledCal = Math.round((selectedFood.kcal || 0) * scale);
+                          const scaledP = Math.round((selectedFood.protein || 0) * scale * 10) / 10;
+                          const scaledC = Math.round((selectedFood.carbs || 0) * scale * 10) / 10;
+                          const scaledF = Math.round((selectedFood.fat || 0) * scale * 10) / 10;
+                          return (
+                            <div style={{marginTop:10,background:"#fff",border:"1px solid #e4dfd8",borderRadius:10,padding:"12px 14px"}}>
+                              <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10,flexWrap:"wrap"}}>
+                                <label style={{fontSize:11,color:"#777",whiteSpace:"nowrap"}}>Servings:</label>
+                                <input className="amount-input" type="number" value={servings}
+                                  onChange={e=>setServings(e.target.value)} min="0.1" step="0.5" />
+                                <select className="unit-select" value={unit} onChange={e=>setUnit(e.target.value)}>
+                                  <option value="serving">× serving ({selectedFood.serving})</option>
+                                  <option value="100g">× 100g</option>
+                                </select>
+                                <button className="log-btn" onClick={()=>logSelectedFood(slot)}>Log it</button>
+                              </div>
+                              {/* Live scaled macros */}
+                              <div style={{display:"flex",gap:14,padding:"10px 12px",background:"#f4f1ed",borderRadius:8,fontSize:12}}>
+                                <div style={{textAlign:"center"}}>
+                                  <div style={{fontFamily:"'DM Serif Display',serif",fontSize:20,lineHeight:1}}>{scaledCal}</div>
+                                  <div style={{fontSize:9,letterSpacing:1,textTransform:"uppercase",color:"#bbb",marginTop:1}}>kcal</div>
+                                </div>
+                                <div style={{width:1,background:"#e4dfd8"}} />
+                                <div style={{textAlign:"center"}}>
+                                  <div style={{fontFamily:"'DM Serif Display',serif",fontSize:20,color:"#c9a84c",lineHeight:1}}>{scaledP}g</div>
+                                  <div style={{fontSize:9,letterSpacing:1,textTransform:"uppercase",color:"#bbb",marginTop:1}}>protein</div>
+                                </div>
+                                <div style={{textAlign:"center"}}>
+                                  <div style={{fontFamily:"'DM Serif Display',serif",fontSize:20,color:"#6e9a84",lineHeight:1}}>{scaledC}g</div>
+                                  <div style={{fontSize:9,letterSpacing:1,textTransform:"uppercase",color:"#bbb",marginTop:1}}>carbs</div>
+                                </div>
+                                <div style={{textAlign:"center"}}>
+                                  <div style={{fontFamily:"'DM Serif Display',serif",fontSize:20,color:"#9a6e9a",lineHeight:1}}>{scaledF}g</div>
+                                  <div style={{fontSize:9,letterSpacing:1,textTransform:"uppercase",color:"#bbb",marginTop:1}}>fat</div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        <div className="section-divider">or add manually</div>
+                        <div className="manual-row">
+                          <input className="manual-input name" placeholder="Food name / brand" value={manualName} onChange={e=>setManualName(e.target.value)} />
+                          <input className="manual-input num" placeholder="kcal" type="number" value={manualCal} onChange={e=>setManualCal(e.target.value)} />
+                          <input className="manual-input num" placeholder="P(g)" type="number" value={manualP} onChange={e=>setManualP(e.target.value)} />
+                          <input className="manual-input num" placeholder="C(g)" type="number" value={manualC} onChange={e=>setManualC(e.target.value)} />
+                          <input className="manual-input num" placeholder="F(g)" type="number" value={manualF} onChange={e=>setManualF(e.target.value)} />
+                          <button className="manual-add-btn" onClick={()=>logManual(slot)} disabled={!manualName||!manualCal}>Add</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Sidebar */}
+            <div className="sidebar">
+              {/* Progress ring */}
+              <div className="ring-card">
+                {(()=>{
+                  const pct = Math.min(Math.round(dayTotals.cal/targets.cal*100),100);
+                  const r=38, circ=2*Math.PI*r;
+                  const color = pct>105?"#c97a6e":pct>0?"#6e9a84":"#e0dbd4";
+                  return (
+                    <>
+                      <div className="ring-wrap">
+                        <svg className="ring-svg" width="90" height="90" viewBox="0 0 90 90">
+                          <circle className="ring-bg" cx="45" cy="45" r={r}/>
+                          <circle className="ring-fg" cx="45" cy="45" r={r} stroke={color}
+                            strokeDasharray={circ} strokeDashoffset={circ*(1-pct/100)}/>
+                        </svg>
+                        <div className="ring-center">
+                          <div className="ring-pct">{pct}%</div>
+                          <div className="ring-lbl">of goal</div>
+                        </div>
+                      </div>
+                      <div className="ring-sub">{targets.cal-dayTotals.cal > 0 ? `${(targets.cal-dayTotals.cal).toLocaleString()} kcal remaining` : "Goal reached!"}</div>
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Today's micros */}
+              <div className="micro-card">
+                <div className="card-title">Today's Nutrients</div>
+                <div className="card-sub">Estimated from logged foods. Log more for accuracy.</div>
+                <div className="micro-rows">
+                  {MICRO_KEYS.map(k=>{
+                    const pct = microPcts[k];
+                    const color = pct>=70?"#6e9a84":pct>=40?"#c9a84c":"#c97a6e";
+                    const val = dayMicros[k];
+                    return (
+                      <div key={k}>
+                        <div className="mrow-hdr">
+                          <div className="mrow-name">{MICRO_META[k].icon} {MICRO_META[k].label}</div>
+                          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                            <div className="mrow-val">{val}{MICRO_META[k].unit}</div>
+                            <div className="mrow-pct" style={{color}}>{pct}%</div>
+                          </div>
+                        </div>
+                        <div className="mrow-bg">
+                          <div className="mrow-fill" style={{width:`${Math.min(pct,100)}%`,background:color}}/>
+                        </div>
+                        {pct<40 && dayEntries.length>0 && <div className="mrow-tip">↗ Add {MICRO_META[k].icon}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── INSIGHTS VIEW ── */}
+        {view==="insights" && (
+          <div className="body">
+            <div>
+              {stats ? (
+                <>
+                  <div className="stats-grid">
+                    <div className="stat-tile"><div className="stat-val">{stats.days}</div><div className="stat-lbl">Days logged</div></div>
+                    <div className="stat-tile"><div className="stat-val">{stats.avgCal.toLocaleString()}</div><div className="stat-lbl">Avg kcal/day</div></div>
+                    <div className="stat-tile"><div className={`stat-val ${stats.avgProt>=targets.protein*0.9?"g":"a"}`}>{stats.avgProt}g</div><div className="stat-lbl">Avg protein</div></div>
+                  </div>
+
+                  <div className="ai-card" style={{marginBottom:12}}>
+                    <div className="card-title" style={{marginBottom:4}}>Personalized Insights</div>
+                    <div className="card-sub" style={{marginBottom:12}}>
+                      Based on {stats.days} days of your real food data — your actual brands, patterns, and gaps.
+                    </div>
+                    {aiText && <div className="ai-stream">{aiText}</div>}
+                    {!aiText && !aiLoading && (
+                      <div className="empty-state">
+                        <div className="empty-icon">✦</div>
+                        <div>AI analyzes your actual eating patterns and tells you exactly what to fix — using foods you already eat.</div>
+                      </div>
+                    )}
+                    <button className="ai-btn" onClick={generateInsights} disabled={aiLoading||stats.days<2}>
+                      {aiLoading?<><span className="sp"/>Analyzing your {stats.days} days of data…</>:aiDone?"↺ Regenerate insights":"✦ Analyze my eating patterns"}
+                    </button>
+                    {stats.days<2 && <div style={{fontSize:11,color:"#bbb",textAlign:"center",marginTop:8}}>Log at least 2 days to unlock insights</div>}
+                  </div>
+                </>
+              ) : (
+                <div className="empty-state" style={{marginTop:40}}>
+                  <div className="empty-icon">📓</div>
+                  <div style={{fontSize:14,color:"#888",marginBottom:8}}>No data yet</div>
+                  <div>Start logging food in the Diary tab to unlock personalized insights.</div>
+                </div>
+              )}
+            </div>
+
+            {/* Micro averages sidebar */}
+            <div className="sidebar">
+              <div className="micro-card">
+                <div className="card-title">Average Nutrients</div>
+                <div className="card-sub">Your daily average across all logged days.</div>
+                <div className="micro-rows">
+                  {MICRO_KEYS.map(k=>{
+                    const pct = avgMicroPcts[k];
+                    const color = pct>=70?"#6e9a84":pct>=40?"#c9a84c":"#c97a6e";
+                    const tag = pct>=70?"green":pct>=40?"amber":"red";
+                    return (
+                      <div key={k}>
+                        <div className="mrow-hdr">
+                          <div className="mrow-name">{MICRO_META[k].icon} {MICRO_META[k].label}</div>
+                          <div style={{display:"flex",gap:5,alignItems:"center"}}>
+                            <span className={`tag tag-${tag}`}>{pct>=70?"Good":pct>=40?"Low":"Deficient"}</span>
+                            <div className="mrow-pct" style={{color}}>{pct}%</div>
+                          </div>
+                        </div>
+                        <div className="mrow-bg">
+                          <div className="mrow-fill" style={{width:`${Math.min(pct,100)}%`,background:color}}/>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── PATTERNS VIEW ── */}
+        {view==="patterns" && (
+          <div className="body">
+            <div>
+              {patterns.length>0 ? (
+                <>
+                  <div style={{fontFamily:"'DM Serif Display',serif",fontSize:22,marginBottom:4}}>Your Food Rotation</div>
+                  <div style={{fontSize:12,color:"#aaa",marginBottom:20,lineHeight:1.6}}>
+                    Foods you actually eat, ranked by frequency. This is what the AI uses to build your personalized plan — the more you log, the smarter it gets.
+                  </div>
+                  <div style={{background:"#fff",border:"1px solid #e4dfd8",borderRadius:14,padding:"8px 16px",marginBottom:12}}>
+                    {patterns.map(([name,count],i)=>(
+                      <div key={i} className="pattern-food">
+                        <div style={{fontSize:12,color:"#bbb",width:20,flex:"none"}}>{i+1}</div>
+                        <div className="pattern-food-name">{name}</div>
+                        <div className="pattern-food-bar">
+                          <div className="pattern-food-fill" style={{width:`${count/patterns[0][1]*100}%`}}/>
+                        </div>
+                        <div className="pattern-food-count">{count}x</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {stats && (
+                    <div style={{background:"#fff",border:"1px solid #e4dfd8",borderRadius:14,padding:16}}>
+                      <div style={{fontFamily:"'DM Serif Display',serif",fontSize:16,marginBottom:12}}>Data Summary</div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,fontSize:12,color:"#555"}}>
+                        <div>Days logged: <strong style={{color:"#1a1a1a"}}>{stats.days}</strong></div>
+                        <div>Unique foods: <strong style={{color:"#1a1a1a"}}>{patterns.length}</strong></div>
+                        <div>Avg calories: <strong style={{color:"#1a1a1a"}}>{stats.avgCal.toLocaleString()}</strong></div>
+                        <div>Avg protein: <strong style={{color:"#1a1a1a"}}>{stats.avgProt}g</strong></div>
+                      </div>
+                      <div style={{marginTop:12,padding:"10px 12px",background:"#f4f1ed",borderRadius:8,fontSize:11,color:"#888",lineHeight:1.6}}>
+                        {stats.days>=7?"✓ Great data — 7+ days gives the AI strong personalization.":stats.days>=3?"Almost there — a few more days of logging unlocks deeper insights.":"Keep logging — patterns emerge after 3-5 days."}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="empty-state" style={{marginTop:40}}>
+                  <div className="empty-icon">🔄</div>
+                  <div style={{fontSize:14,color:"#888",marginBottom:8}}>No patterns yet</div>
+                  <div>Log a few days of food and your rotation will appear here. The AI uses this to build plans around what you actually eat.</div>
+                </div>
+              )}
+            </div>
+
+            <div className="sidebar">
+              <div className="micro-card">
+                <div className="card-title">How it works</div>
+                <div style={{fontSize:12,color:"#555",lineHeight:1.8}}>
+                  <div style={{marginBottom:10}}>📓 <strong>Log your food</strong> — just like Cronometer. Brands, exact amounts, everything.</div>
+                  <div style={{marginBottom:10}}>🔄 <strong>Build your rotation</strong> — after a week, Fuel knows what you eat, when, and in what amounts.</div>
+                  <div style={{marginBottom:10}}>🧠 <strong>Get personalized plans</strong> — the AI builds meal plans from your actual foods, not generic templates.</div>
+                  <div>📊 <strong>Close your gaps</strong> — Fuel identifies your consistent nutrient deficiencies and fixes them using foods you already like.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
