@@ -14,18 +14,11 @@
 <script type="text/babel">
 const { useState, useEffect } = React;
 
-// Simple localStorage storage - stores raw strings
 async function storageGet(key) {
-  try {
-    const v = localStorage.getItem(key);
-    return v ? { value: v } : null;
-  } catch { return null; }
+  try { const v = localStorage.getItem(key); return v ? { value: v } : null; } catch { return null; }
 }
 async function storageSet(key, value) {
-  try {
-    // value is already a JSON string here
-    localStorage.setItem(key, value);
-  } catch {}
+  try { localStorage.setItem(key, value); } catch {}
 }
 
 
@@ -86,46 +79,60 @@ function microPct(m) {
 function todayKey() { return new Date().toISOString().split("T")[0]; }
 
 async function searchUSDA(query) {
-  try {
+  const USDA_KEY = "80xwrpV5zwefm539zwcA8jqrp6WBdgocqzJYW2fE";
+
+  // Try USDA direct first (works on GitHub Pages)
+  async function tryUSDA() {
+    const params = new URLSearchParams({
+      query, pageSize:"6", api_key:USDA_KEY, dataType:"Branded,Foundation,SR Legacy"
+    });
+    const r = await fetch("https://api.nal.usda.gov/fdc/v1/foods/search?" + params.toString());
+    if (!r.ok) throw new Error("USDA " + r.status);
+    const d = await r.json();
+    if (!d.foods || !d.foods.length) return [];
+    return d.foods.slice(0,5).map(f => {
+      const n = {};
+      (f.foodNutrients||[]).forEach(x => {
+        const nm = x.nutrientName||"";
+        if (nm.includes("Energy") && !n.kcal) n.kcal = Math.round(x.value||0);
+        if (nm.includes("Protein") && !n.protein) n.protein = Math.round((x.value||0)*10)/10;
+        if (nm.includes("Carbohydrate, by difference") && !n.carbs) n.carbs = Math.round((x.value||0)*10)/10;
+        if (nm.includes("Total lipid") && !n.fat) n.fat = Math.round((x.value||0)*10)/10;
+      });
+      const sz = f.servingSize ? f.servingSize+(f.servingSizeUnit||"g") : "100g";
+      const serving = f.householdServingFullText ? f.householdServingFullText+" ("+sz+")" : sz;
+      return { name:f.description, brand:f.brandOwner||f.brandName||null, serving, ...n };
+    });
+  }
+
+  // AI fallback (works in artifact sandbox)
+  async function tryAI() {
+    const prompt = "Return ONLY a JSON object, nothing else. No markdown, no explanation. " +
+      "Give exact nutrition label data for: " + query + ". " +
+      "Include 4 real products. Values PER SERVING as on the label, NOT per 100g. " +
+      "Format: {"foods":[{"name":"Brand Product Name","brand":"Brand","serving":"1 slice (39g)","kcal":110,"protein":4,"carbs":22,"fat":0}]}";
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{
-          role: "user",
-          content: `Return ONLY a JSON object. No explanation, no markdown, no text before or after.
-
-I need the EXACT nutrition label data for: "${query}"
-
-Rules:
-- Values are PER SERVING shown on the nutrition facts label
-- NOT per 100g
-- NOT estimated or calculated
-- Copy exactly from the real product label
-- If you are not certain of the exact label values, still give your best known data from the product
-
-Bread Alone San Francisco Sourdough example:
-- 1 slice (39g), 110 cal, 4g protein, 22g carbs, 0g fat
-
-{"foods":[
-  {"name":"Exact product name from label","brand":"Brand","serving":"1 slice (39g)","kcal":110,"protein":4,"carbs":22,"fat":0},
-  {"name":"Similar product 2","brand":"Brand","serving":"serving size","kcal":0,"protein":0,"carbs":0,"fat":0}
-]}`
-        }]
-      })
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800,
+        messages:[{ role:"user", content:prompt }] })
     });
     const data = await resp.json();
-    const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
-    const jsonStr = text.replace(/```json|```/g, "").trim();
-    const start = jsonStr.indexOf("{");
-    const end = jsonStr.lastIndexOf("}");
-    if (start === -1 || end === -1) return [];
-    const parsed = JSON.parse(jsonStr.slice(start, end + 1));
-    return (parsed.foods || []).slice(0, 4);
+    const text = ((data.content||[]).find(b=>b.type==="text")||{}).text||"";
+    const s = text.indexOf("{"), e = text.lastIndexOf("}");
+    if (s===-1||e===-1) return [];
+    return (JSON.parse(text.slice(s,e+1)).foods||[]).slice(0,4);
+  }
+
+  try {
+    const results = await tryUSDA();
+    if (results.length > 0) return results;
   } catch(e) {
-    console.error("Search error:", e);
+    console.log("USDA blocked, trying AI fallback");
+  }
+  try {
+    return await tryAI();
+  } catch(e) {
+    console.error("Both searches failed:", e);
     return [];
   }
 }
@@ -1023,7 +1030,7 @@ function App() {
 }
 
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
 </script>
 </body>
 </html>
